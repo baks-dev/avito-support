@@ -36,9 +36,15 @@ final class AvitoReplyToReviewRequest extends AvitoApi
     /**  ID отзыва */
     private int $avitoReview;
 
-    public function avitoReview(int $avitoReview): self
+    public function avitoReview(string|int $avitoReview): self
     {
-        $this->avitoReview = $avitoReview;
+        if(is_string($avitoReview) && str_starts_with('AR-', $avitoReview))
+        {
+            $avitoReview = str_replace('AR-', '', $avitoReview);
+        }
+
+
+        $this->avitoReview = (int) $avitoReview;
 
         return $this;
     }

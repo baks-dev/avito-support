@@ -48,6 +48,11 @@ final class AvitoSendMessageRequest extends AvitoApi
 
     public function avitoChat(string $avitoChat): self
     {
+        if(str_starts_with('AM-', $avitoChat))
+        {
+            $avitoChat = str_replace('AM-', '', $avitoChat);
+        }
+
         $this->avitoChat = $avitoChat;
 
         return $this;
