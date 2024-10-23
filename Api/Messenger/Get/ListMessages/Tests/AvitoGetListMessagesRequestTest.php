@@ -46,9 +46,10 @@ class AvitoGetListMessagesRequestTest extends KernelTestCase
     {
 
         self::$authorization = new AvitoTokenAuthorization(
-            new UserProfileUid(),
+            new UserProfileUid(UserProfileUid::TEST),
             $_SERVER['TEST_AVITO_CLIENT'],
             $_SERVER['TEST_AVITO_SECRET'],
+            $_SERVER['TEST_AVITO_PROFILE']
         );
     }
 
@@ -58,21 +59,19 @@ class AvitoGetListMessagesRequestTest extends KernelTestCase
         /** @var AvitoGetListMessagesRequest $AvitoGetListMessagesRequest */
         $AvitoGetListMessagesRequest = self::getContainer()->get(AvitoGetListMessagesRequest::class);
         $AvitoGetListMessagesRequest->tokenHttpClient(self::$authorization);
-        $AvitoGetListMessagesRequest->avitoChat('bdcc5bac2d00345f1cc66fa657813958');
-        $AvitoGetListMessagesRequest->avitoProfile($_SERVER['TEST_AVITO_PROFILE']);
 
-        $messages = $AvitoGetListMessagesRequest->findAll();
+        $messages = $AvitoGetListMessagesRequest->findAll('u2i-861197354-167240276');
 
 
-        // dd(iterator_to_array($messages));
+        //         dd(iterator_to_array($messages));
 
         if($messages->valid())
         {
             /** @var AvitoListMessagesDTO $AvitoListMessagesDTO */
             $AvitoListMessagesDTO = $messages->current();
 
-            self::assertNotNull($AvitoListMessagesDTO->getId());
-            self::assertIsString($AvitoListMessagesDTO->getId());
+            self::assertNotNull($AvitoListMessagesDTO->getExternalId());
+            self::assertIsString($AvitoListMessagesDTO->getExternalId());
 
             self::assertNotNull($AvitoListMessagesDTO->getAuthorId());
             self::assertIsInt($AvitoListMessagesDTO->getAuthorId());

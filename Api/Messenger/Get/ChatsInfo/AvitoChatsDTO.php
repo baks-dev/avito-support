@@ -33,7 +33,7 @@ final readonly class AvitoChatsDTO
     /** ID */
     private string $id;
 
-    /** Type */
+    /** Title */
     private string $title;
 
     /** Type (item) */
@@ -54,9 +54,15 @@ final readonly class AvitoChatsDTO
         $this->created = (new DateTimeImmutable())->setTimestamp($data['created']);
 
         $this->users = new ArrayCollection();
-        foreach($data['user'] as $user)
+
+        foreach($data['users'] as $user)
         {
-            $this->users->add($user);
+            $this->users->add(
+                new AvitoChatsUsersDTO(
+                    $user['id'],
+                    $user['name'],
+                )
+            );
         }
     }
 

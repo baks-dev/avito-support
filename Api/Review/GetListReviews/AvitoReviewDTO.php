@@ -36,24 +36,17 @@ final  class AvitoReviewDTO
     /** Имя отправителя */
     private string $sender;
 
+    /** Ответ на отзыв */
+    private bool $answer;
+
     /** Заголовок объявления */
     private string $title;
 
     /** Можно ли оставить ответ на отзыв */
-    private bool $canAnswer;
+    private array|false $canAnswer;
 
     /** Текст отзыва */
     private string $text;
-
-    /**
-     * Стадия сделки:
-     *
-     * done - Сделка состоялась
-     * fell_through - Сделка сорвалсь
-     * not_agree - Не договорились
-     * not_communicate - Не общались
-     */
-    private string $stage;
 
     private DateTimeImmutable $created;
 
@@ -62,10 +55,10 @@ final  class AvitoReviewDTO
     {
         $this->id = $data['id'];
         $this->sender = $data['sender']['name'];
+        $this->answer = !empty($data['answer']) ? $data['answer'] : false;
         $this->title = $data['item']['title'];
         $this->canAnswer = $data['canAnswer'];
         $this->text = $data['text'];
-        $this->stage = $data['stage'];
         $this->created = (new DateTimeImmutable())->setTimestamp($data['createdAt']);
     }
 
@@ -94,14 +87,13 @@ final  class AvitoReviewDTO
         return $this->text;
     }
 
-    public function getStage(): string
-    {
-        return $this->stage;
-    }
-
     public function getCreated(): DateTimeImmutable
     {
         return $this->created;
     }
 
+    public function getAnswer(): array|false
+    {
+        return $this->answer;
+    }
 }

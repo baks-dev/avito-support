@@ -26,84 +26,53 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Api\Messenger\Get\ListMessages;
 
 use BaksDev\Avito\Api\AvitoApi;
-use DateInterval;
-use DomainException;
 use Generator;
-use Symfony\Contracts\Cache\ItemInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 
-/**
- * Получение списка сообщений V3. Не помечает чат прочитанным.
- * После успешного получения списка сообщений необходимо вызвать метод,
- * который сделает сообщения прочитанными.
- *
- * @see https://developers.avito.ru/api-catalog/messenger/documentation#operation/getMessagesV3
- */
+
 final class AvitoGetListMessagesRequest extends AvitoApi
 {
-    /** Идентификатор пользователя (номер профиля авито) */
-    private int $avitoProfile;
 
-    /** Идентификатор чата */
-    private string $avitoChat;
-
-    public function avitoProfile(int $avitoProfile): self
+    /**
+     * Получение списка сообщений V3. Не помечает чат прочитанным.
+     * После успешного получения списка сообщений необходимо вызвать метод,
+     * который сделает сообщения прочитанными.
+     *
+     * @see https://developers.avito.ru/api-catalog/messenger/documentation#operation/getMessagesV3
+     *
+     * $avitoChat Идентификатор чата
+     */
+    public function findAll(string $avitoChat): Generator|false
     {
-        $this->avitoProfile = $avitoProfile;
+        /** Собираем массив и присваиваем в переменную query параметры запроса */
+        $query = [
+            /** Смещение */
+            //   'offset'        => 1,
+            /** Лимит количества сообщений */
+            //  'limit'         => 50
+        ];
 
-        return $this;
-    }
+        $response = $this->TokenHttpClient()
+            ->request(
+                'GET',
+                sprintf(
+                    '/messenger/v3/accounts/%s/chats/%s/messages/',
+                    $this->getUser(),
+                    $avitoChat
+                ),
+                ['query' => $query]
+            );
 
-    public function avitoChat(string $avitoChat): self
-    {
-        $this->avitoChat = $avitoChat;
-
-        return $this;
-    }
-
-    public function findAll(): Generator
-    {
-        $cache = $this->getCacheInit('avito-support');
-
-        $response = $cache->get(
-            sprintf('%s-%s-%s', 'avito-support-list-messages', $this->avitoChat, $this->profile),
-            function(ItemInterface $item): ResponseInterface {
-
-                $item->expiresAfter(DateInterval::createFromDateString('1 min'));
-
-                return $this->TokenHttpClient()
-                    ->request(
-                        'GET',
-                        sprintf(
-                            '/messenger/v3/accounts/%s/chats/%s/messages/',
-                            $this->avitoProfile,
-                            $this->avitoChat
-                        ),
-                        ['query' =>
-                            [
-                                /** Смещение */
-                                //   'offset'        => 1,
-                                /** Лимит количества сообщений */
-                                //  'limit'         => 50
-                            ]
-                        ]
-                    );
-            }
-        );
-
-        $content = $response->toArray(false);
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical($content['error']['code'].': '.$content['error']['message'], [__FILE__.':'.__LINE__]);
+            $this->logger->critical('Ошибка получения сообщений', [__FILE__.':'.__LINE__]);
 
-            throw new DomainException(
-                message: 'Ошибка '.self::class,
-                code: $response->getStatusCode()
-            );
+            return false;
         }
 
-        foreach($content as $item)
+        $content = $response->toArray(false);
+
+        foreach(current($content) as $item)
         {
             yield new AvitoListMessagesDTO($item);
         }

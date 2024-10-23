@@ -1,0 +1,12 @@
+avito-support:
+
+  message:
+
+    name: 'Авито сообщения'
+    desc: 'Сообщения Авито'
+
+
+  review:
+
+    name: 'Авито отзывы'
+    desc: 'Отзывы Авито'

@@ -46,9 +46,10 @@ class AvitoGetListReviewsRequestTest extends KernelTestCase
     {
 
         self::$authorization = new AvitoTokenAuthorization(
-            new UserProfileUid(),
+            new UserProfileUid(UserProfileUid::TEST),
             $_SERVER['TEST_AVITO_CLIENT'],
             $_SERVER['TEST_AVITO_SECRET'],
+            $_SERVER['TEST_AVITO_PROFILE']
         );
     }
 
@@ -62,7 +63,7 @@ class AvitoGetListReviewsRequestTest extends KernelTestCase
         $reviews = $AvitoGetListReviewsRequest->findAll();
 
 
-        // dd(iterator_to_array($reviews));
+        //         dd(iterator_to_array($reviews));
 
         if($reviews->valid())
         {
@@ -84,27 +85,9 @@ class AvitoGetListReviewsRequestTest extends KernelTestCase
             self::assertNotNull($AvitoReviewDTO->getSender());
             self::assertIsString($AvitoReviewDTO->getSender());
 
-            self::assertNotNull($AvitoReviewDTO->getStage());
-            self::assertIsString($AvitoReviewDTO->getStage());
+            self::assertNotNull($AvitoReviewDTO->getAnswer());
+            self::assertIsBool($AvitoReviewDTO->getAnswer());
 
-            if($AvitoReviewDTO->getAnswer())
-            {
-                $AvitoReviewAnswerDTO = $AvitoReviewDTO->getAnswer();
-
-                self::assertNotNull($AvitoReviewAnswerDTO->getId());
-                self::assertIsInt($AvitoReviewAnswerDTO->getId());
-
-                self::assertNotNull($AvitoReviewAnswerDTO->getText());
-                self::assertIsString($AvitoReviewAnswerDTO->getText());
-
-                self::assertNotNull($AvitoReviewAnswerDTO->getCreated());
-                self::assertInstanceOf(
-                    DateTimeImmutable::class,
-                    $AvitoReviewAnswerDTO->getCreated()
-                );
-
-                self::assertIsArray($AvitoReviewAnswerDTO->getReject());
-            }
         }
         else
         {

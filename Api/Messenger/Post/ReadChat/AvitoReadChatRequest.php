@@ -27,52 +27,28 @@ namespace BaksDev\Avito\Support\Api\Messenger\Post\ReadChat;
 
 use BaksDev\Avito\Api\AvitoApi;
 
-/**
- * Прочитать чат
- *
- * После успешного получения списка сообщений необходимо вызвать
- * этот метод для того, чтобы чат стал прочитанным.
- *
- * @see https://developers.avito.ru/api-catalog/messenger/documentation#operation/chatRead
- */
+
 final class AvitoReadChatRequest extends AvitoApi
 {
-    /** Идентификатор пользователя (номер профиля авито) */
-    private int $avitoProfile;
-
-    /** Идентификатор чата */
-    private string $avitoChat;
-
-    public function avitoProfile(int $avitoProfile): self
-    {
-        $this->avitoProfile = $avitoProfile;
-
-        return $this;
-    }
-
-    public function avitoChat(string $avitoChat): self
-    {
-        if(str_starts_with('AM-', $avitoChat))
-        {
-            $avitoChat = str_replace('AM-', '', $avitoChat);
-        }
-
-        $this->avitoChat = $avitoChat;
-
-        return $this;
-    }
 
     /**
-     * $message - Текст сообщения
+     * Прочитать чат
+     *
+     * После успешного получения списка сообщений необходимо вызвать
+     * этот метод для того, чтобы чат стал прочитанным.
+     *
+     * @see https://developers.avito.ru/api-catalog/messenger/documentation#operation/chatRead
+     *
+     * $avitoChat Идентификатор чата
      */
-    public function read(): bool
+    public function read(string $avitoChat): bool
     {
         /**
          * Выполнять операции запроса ТОЛЬКО в PROD окружении
          */
         if($this->isExecuteEnvironment() === false)
         {
-            return false;
+            return true;
         }
 
         $response = $this->TokenHttpClient()
@@ -80,19 +56,19 @@ final class AvitoReadChatRequest extends AvitoApi
                 'POST',
                 sprintf(
                     '/messenger/v1/accounts/%s/chats/%s/read',
-                    $this->avitoProfile,
-                    $this->avitoChat
+                    $this->getUser(),
+                    $avitoChat
                 )
             );
 
-        $content = $response->toArray(false);
-
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical($content['error']['code'].': '.$content['error']['message'], [self::class.':'.__LINE__]);
+            $this->logger->critical('Ошибка прочтения чата', [__FILE__.':'.__LINE__]);
 
             return false;
         }
+
+        $content = $response->toArray(false);
 
         if(empty($content))
         {

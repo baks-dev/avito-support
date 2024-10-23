@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Schedule\AvitoGetNewMessages;
 
 use BaksDev\Avito\Repository\AllUserProfilesByActiveToken\AllUserProfilesByActiveTokenInterface;
-use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportMessage;
+use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportMessage\NewSupportMessage;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 

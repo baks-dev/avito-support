@@ -27,70 +27,55 @@ namespace BaksDev\Avito\Support\Api\Messenger\Post\SendMessage;
 
 use BaksDev\Avito\Api\AvitoApi;
 
-/**
- * Отправка сообщения
- * @see https://developers.avito.ru/api-catalog/messenger/documentation#operation/postSendMessage
- */
+
 final class AvitoSendMessageRequest extends AvitoApi
 {
-    /** Идентификатор пользователя (номер профиля авито) */
-    private int $avitoProfile;
-
-    /** Идентификатор чата */
-    private string $avitoChat;
-
-    public function avitoProfile(int $avitoProfile): self
-    {
-        $this->avitoProfile = $avitoProfile;
-
-        return $this;
-    }
-
-    public function avitoChat(string $avitoChat): self
-    {
-        if(str_starts_with('AM-', $avitoChat))
-        {
-            $avitoChat = str_replace('AM-', '', $avitoChat);
-        }
-
-        $this->avitoChat = $avitoChat;
-
-        return $this;
-    }
 
     /**
+     * Отправка сообщения в чат
+     *
+     * @see https://developers.avito.ru/api-catalog/messenger/documentation#operation/postSendMessage
+     *
      * $message - Текст сообщения
      */
-    public function send(string $message): bool
+    public function send(
+        string $avitoChat,
+        string $message,
+        ?string $type = 'text',
+    ): bool
     {
+        /** Собираем в массив и присваиваем в переменную тело запроса */
+        $body = [
+            'message' => ['text' => $message],
+            'type' => $type
+        ];
+
         /**
          * Выполнять операции запроса ТОЛЬКО в PROD окружении
          */
         if($this->isExecuteEnvironment() === false)
         {
-            return false;
+            return true;
         }
 
         $response = $this->TokenHttpClient()
             ->request(
                 'POST',
-                sprintf('/messenger/v1/accounts/%s/chats/%s/messages', $this->avitoProfile, $this->avitoChat),
+                sprintf('/messenger/v1/accounts/%s/chats/%s/messages', $this->getUser(), $avitoChat),
                 [
-                    "payload" => [
-                        'message' => $message,
-                        'type' => "text"
-                    ]
+                    "json" => $body
                 ]
             );
 
-        $content = $response->toArray(false);
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical($content['error']['code'].': '.$content['error']['message'], [self::class.':'.__LINE__]);
+            $this->logger->critical('Ошибка отправки сообщения в чат', array_merge($body, [__FILE__.':'.__LINE__]));
 
             return false;
         }
+
+        $content = $response->toArray(false);
 
         if(empty($content))
         {

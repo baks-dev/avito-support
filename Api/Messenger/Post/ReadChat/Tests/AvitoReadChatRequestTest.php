@@ -23,9 +23,9 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Avito\Support\Api\Messenger\Post\SendMessage\Tests;
+namespace BaksDev\Avito\Support\Api\Messenger\Post\ReadChat\Tests;
 
-use BaksDev\Avito\Support\Api\Messenger\Post\SendMessage\AvitoSendMessageRequest;
+use BaksDev\Avito\Support\Api\Messenger\Post\ReadChat\AvitoReadChatRequest;
 use BaksDev\Avito\Type\Authorization\AvitoTokenAuthorization;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -36,7 +36,7 @@ use Symfony\Component\DependencyInjection\Attribute\When;
  *
  */
 #[When(env: 'test')]
-class AvitoSendMessageRequestTest extends KernelTestCase
+class AvitoReadChatRequestTest extends KernelTestCase
 {
     private static AvitoTokenAuthorization $authorization;
 
@@ -54,14 +54,14 @@ class AvitoSendMessageRequestTest extends KernelTestCase
     public function testComplete(): void
     {
 
-        /** @var AvitoSendMessageRequest $AvitoSendMessageRequest */
-        $AvitoSendMessageRequest = self::getContainer()->get(AvitoSendMessageRequest::class);
-        $AvitoSendMessageRequest->tokenHttpClient(self::$authorization);
+        /** @var AvitoReadChatRequest $AvitoReadChatRequest */
+        $AvitoReadChatRequest = self::getContainer()->get(AvitoReadChatRequest::class);
+        $AvitoReadChatRequest->tokenHttpClient(self::$authorization);
 
-        $reviews = $AvitoSendMessageRequest
+        $reviews = $AvitoReadChatRequest
             ->profile(self::$authorization->getProfile())
-            ->send('u2i-H0K0Sv80FDuwecQFq0dCcQ', 'Беру!!!');
-        //                dd($reviews);
+            ->read('u2i-861197354-167240276');
+
         self::assertTrue($reviews);
     }
 }

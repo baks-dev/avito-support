@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Avito\Support\Messenger\NewMessage;
+namespace BaksDev\Avito\Support\Messenger\NewMessage\NewSupportReview;
 
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see NewSupportReviewMessage */
-final class NewSupportMessage
+final class NewSupportReviewMessage
 {
     /** Идентификатор */
     #[Assert\Uuid]

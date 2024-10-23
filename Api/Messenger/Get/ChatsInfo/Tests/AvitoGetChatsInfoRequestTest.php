@@ -47,24 +47,30 @@ class AvitoGetChatsInfoRequestTest extends KernelTestCase
     {
 
         self::$authorization = new AvitoTokenAuthorization(
-            new UserProfileUid(),
+            new UserProfileUid(UserProfileUid::TEST),
             $_SERVER['TEST_AVITO_CLIENT'],
             $_SERVER['TEST_AVITO_SECRET'],
+            $_SERVER['TEST_AVITO_PROFILE']
         );
     }
 
     public function testComplete(): void
     {
 
+        //        /** @var AppCacheInterface $cache */
+        //        $initCache = self::getContainer()->get(AppCacheInterface::class);
+        //        $cache = $initCache->init('avito-support');
+
+        //        $cache->delete(sprintf('%s-%s', 'avito-support-info-chats', UserProfileUid::TEST));
+
         /** @var AvitoGetChatsInfoRequest $AvitoGetChatsInfoRequest */
         $AvitoGetChatsInfoRequest = self::getContainer()->get(AvitoGetChatsInfoRequest::class);
         $AvitoGetChatsInfoRequest->tokenHttpClient(self::$authorization);
-        $AvitoGetChatsInfoRequest->avitoProfile($_SERVER['TEST_AVITO_PROFILE']);
 
         $chatsInfo = $AvitoGetChatsInfoRequest->findAll();
 
 
-        // dd(iterator_to_array($chatsInfo));
+        //         dd(iterator_to_array($chatsInfo));
 
         if($chatsInfo->valid())
         {
@@ -88,16 +94,16 @@ class AvitoGetChatsInfoRequestTest extends KernelTestCase
 
             if($AvitoChatsDTO->getUsers())
             {
-                /** @var AvitoChatsUsersDTO $user */
                 $AvitoChatsContextDTO = $AvitoChatsDTO->getUsers();
 
+                /** @var AvitoChatsUsersDTO $user */
                 $user = $AvitoChatsContextDTO->current();
 
                 self::assertNotNull($user->getId());
                 self::assertIsInt($user->getId());
 
                 self::assertNotNull($user->getName());
-                self::assertIsInt($user->getName());
+                self::assertIsString($user->getName());
             }
         }
         else

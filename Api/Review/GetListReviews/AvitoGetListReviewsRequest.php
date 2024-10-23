@@ -26,11 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Api\Review\GetListReviews;
 
 use BaksDev\Avito\Api\AvitoApi;
-use DateInterval;
-use DomainException;
 use Generator;
-use Symfony\Contracts\Cache\ItemInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 
 
 final class AvitoGetListReviewsRequest extends AvitoApi
@@ -42,41 +38,37 @@ final class AvitoGetListReviewsRequest extends AvitoApi
      */
     public function findAll(): Generator
     {
-        $cache = $this->getCacheInit('avito-support');
+        /** Собираем массив и присваиваем в переменную query параметры запроса */
+        $query = [
+            /** Смещение */
+            'offset' => 1,
+            /** Лимит количества отзывов */
+            'limit' => 50
+        ];
 
-        $response = $cache->get(
-            sprintf('%s-%s', 'avito-support-list-reviews', $this->profile),
-            function(ItemInterface $item): ResponseInterface {
-
-                $item->expiresAfter(DateInterval::createFromDateString('1 min'));
-
-                return $this->TokenHttpClient()
-                    ->request(
-                        'GET',
-                        '/ratings/v1/reviews',
-                        ['query' =>
-                            [
-                                /** Смещение */
-                                'offset' => 1,
-                                /** Лимит количества отзывов */
-                                'limit' => 50
-                            ]
-                        ]
-                    );
-            }
-        );
+        $response = $this->TokenHttpClient()
+            ->request(
+                'GET',
+                '/ratings/v1/reviews',
+                ['query' => $query]
+            );
 
         $content = $response->toArray(false);
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical($content['error']['code'].': '.$content['error']['message'], [__FILE__.':'.__LINE__]);
-
-            throw new DomainException(
-                message: 'Ошибка '.self::class,
-                code: $response->getStatusCode()
+            $this->logger->critical(
+                sprintf(
+                    'Ошибка получения отзывов. code: %s, message: %s',
+                    $content['error']['code'],
+                    $content['error']['message']
+                ),
+                [__FILE__.':'.__LINE__]
             );
+
+            return false;
         }
+
 
         foreach($content['reviews'] as $item)
         {

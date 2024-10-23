@@ -27,10 +27,7 @@ namespace BaksDev\Avito\Support\Api\Review\ReplyToReview;
 
 use BaksDev\Avito\Api\AvitoApi;
 
-/**
- * Отправка ответа на отзыв
- * @see https://developers.avito.ru/api-catalog/ratings/documentation#operation/createReviewAnswerV1
- */
+
 final class AvitoReplyToReviewRequest extends AvitoApi
 {
     /**  ID отзыва */
@@ -38,26 +35,34 @@ final class AvitoReplyToReviewRequest extends AvitoApi
 
     public function avitoReview(string|int $avitoReview): self
     {
-        if(is_string($avitoReview) && str_starts_with('AR-', $avitoReview))
-        {
-            $avitoReview = str_replace('AR-', '', $avitoReview);
-        }
-
-
         $this->avitoReview = (int) $avitoReview;
 
         return $this;
     }
 
-    /**  $message - Текст ответа на отзыв */
+    /**
+     * Отправка ответа на отзыв
+     * @see https://developers.avito.ru/api-catalog/ratings/documentation#operation/createReviewAnswerV1
+     *
+     * $message - Текст ответа на отзыв
+     *
+     */
     public function send(string $message): bool
     {
+
+        /** Собираем в массив и присваиваем в переменную тело запроса */
+        $body = [
+            'message' => $message,
+            'reviewId' => $this->avitoReview
+        ];
+
+
         /**
          * Выполнять операции запроса ТОЛЬКО в PROD окружении
          */
         if($this->isExecuteEnvironment() === false)
         {
-            return false;
+            return true;
         }
 
 
@@ -65,19 +70,21 @@ final class AvitoReplyToReviewRequest extends AvitoApi
             ->request(
                 'POST',
                 '/ratings/v1/answers',
-                [
-                    "payload" => [
-                        'message' => $message,
-                        'reviewId' => $this->avitoReview
-                    ]
-                ]
+                ["json" => $body]
             );
 
         $content = $response->toArray(false);
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical($content['error']['code'].': '.$content['error']['message'], [self::class.':'.__LINE__]);
+            $this->logger->critical(
+                sprintf(
+                    'Ошибка отправки ответа на отзыв. code: %s, message: %s',
+                    $content['error']['code'],
+                    $content['error']['message']
+                ),
+                [__FILE__.':'.__LINE__]
+            );
 
             return false;
         }

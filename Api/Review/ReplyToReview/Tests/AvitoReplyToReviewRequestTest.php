@@ -23,9 +23,9 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Avito\Support\Api\Messenger\Post\SendMessage\Tests;
+namespace BaksDev\Avito\Support\Api\Review\ReplyToReview\Tests;
 
-use BaksDev\Avito\Support\Api\Messenger\Post\SendMessage\AvitoSendMessageRequest;
+use BaksDev\Avito\Support\Api\Review\ReplyToReview\AvitoReplyToReviewRequest;
 use BaksDev\Avito\Type\Authorization\AvitoTokenAuthorization;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -36,7 +36,7 @@ use Symfony\Component\DependencyInjection\Attribute\When;
  *
  */
 #[When(env: 'test')]
-class AvitoSendMessageRequestTest extends KernelTestCase
+class AvitoReplyToReviewRequestTest extends KernelTestCase
 {
     private static AvitoTokenAuthorization $authorization;
 
@@ -54,14 +54,15 @@ class AvitoSendMessageRequestTest extends KernelTestCase
     public function testComplete(): void
     {
 
-        /** @var AvitoSendMessageRequest $AvitoSendMessageRequest */
-        $AvitoSendMessageRequest = self::getContainer()->get(AvitoSendMessageRequest::class);
-        $AvitoSendMessageRequest->tokenHttpClient(self::$authorization);
+        /** @var AvitoReplyToReviewRequest $AvitoReplyToReviewRequest */
+        $AvitoReplyToReviewRequest = self::getContainer()->get(AvitoReplyToReviewRequest::class);
+        $AvitoReplyToReviewRequest->tokenHttpClient(self::$authorization);
 
-        $reviews = $AvitoSendMessageRequest
+        $reviews = $AvitoReplyToReviewRequest
             ->profile(self::$authorization->getProfile())
-            ->send('u2i-H0K0Sv80FDuwecQFq0dCcQ', 'Беру!!!');
-        //                dd($reviews);
+            ->avitoReview('23442221')
+            ->send('New Test Message');
+
         self::assertTrue($reviews);
     }
 }

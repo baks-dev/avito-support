@@ -26,77 +26,52 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Api\Messenger\Get\ChatsInfo;
 
 use BaksDev\Avito\Api\AvitoApi;
-use DateInterval;
-use DomainException;
 use Generator;
-use Symfony\Contracts\Cache\ItemInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 
-/**
- * Получение информации по чатам
- *
- * @see https://developers.avito.ru/api-catalog/messenger/documentation#operation/getChatsV2
- */
 final class AvitoGetChatsInfoRequest extends AvitoApi
 {
-    /** Идентификатор пользователя (номер профиля авито) */
-    private int $avitoProfile;
 
-    public function avitoProfile(int $avitoProfile): self
+    /**
+     * Получение информации по чатам
+     *
+     * @see https://developers.avito.ru/api-catalog/messenger/documentation#operation/getChatsV2
+     */
+    public function findAll(): Generator|false
     {
-        $this->avitoProfile = $avitoProfile;
+        /** Собираем массив и присваиваем в переменную query параметры запроса */
+        $query = [
+            /** Получение чатов только по объявлениям с указанными item_id */
+            //  'item_ids'      => [],
+            /** При значении true метод возвращает только непрочитанные чаты */
+            'unread_only' => 'true',
+            /**
+             * Фильтрация возвращаемых чатов.
+             * u2i — чаты по объявлениям;
+             * u2u — чаты между пользователями;
+             */
+            'chat_types' => 'u2i,u2u',
+            /** Смещение */
+            // 'offset' => 1,
+            /** Лимит количества отзывов */
+            // 'limit' => 10
+        ];
 
-        return $this;
-    }
+        $response = $this->TokenHttpClient()
+            ->request(
+                'GET',
+                sprintf('/messenger/v2/accounts/%s/chats', $this->getUser()),
+                ['query' => $query]
+            );
 
-    /** $userId - Идентификатор пользователя (клиента) */
-    public function findAll(): Generator
-    {
-        $cache = $this->getCacheInit('avito-support');
-
-        $response = $cache->get(
-            sprintf('%s-%s', 'avito-support-info-chats', $this->profile),
-            function(ItemInterface $item): ResponseInterface {
-
-                $item->expiresAfter(DateInterval::createFromDateString('1 min'));
-
-                return $this->TokenHttpClient()
-                    ->request(
-                        'GET',
-                        sprintf('/messenger/v2/accounts/%s/chats', $this->avitoProfile),
-                        ['query' =>
-                            [
-                                /** Получение чатов только по объявлениям с указанными item_id */
-                                //  'item_ids'      => [],
-                                /** При значении true метод возвращает только непрочитанные чаты */
-                                'unread_only' => true,
-                                /**
-                                 * Фильтрация возвращаемых чатов.
-                                 * u2i — чаты по объявлениям;
-                                 * u2u — чаты между пользователями;
-                                 */
-                                'chat_types' => ['u2i', 'u2u'],
-                                /** Смещение */
-                                //   'offset'        => 1,
-                                /** Лимит количества отзывов */
-                                //  'limit'         => 50
-                            ]
-                        ]
-                    );
-            }
-        );
-
-        $content = $response->toArray(false);
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical($content['error']['code'].': '.$content['error']['message'], [__FILE__.':'.__LINE__]);
+            $this->logger->critical('Ошибка получения чата', [__FILE__.':'.__LINE__]);
 
-            throw new DomainException(
-                message: 'Ошибка '.self::class,
-                code: $response->getStatusCode()
-            );
+            return false;
         }
+
+        $content = $response->toArray(false);
 
         foreach($content['chats'] as $item)
         {

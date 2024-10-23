@@ -31,13 +31,13 @@ final class AvitoListMessagesDTO
 {
 
     /** ID */
-    private string $id;
+    private string $externalId;
 
     /** ID автора */
     private int $authorId;
 
     /** Текст сообщения */
-    private string $text;
+    private ?string $text = null;
 
     /** Прочитано ли сообщение */
     private bool $isRead;
@@ -45,22 +45,92 @@ final class AvitoListMessagesDTO
     /** Enum: "text" "image" "link" "item" "location" "call" "deleted" "voice" */
     private string $type;
 
+    /** Входящее/Исходящее (Enum: "in" "out") */
+    private string $direction;
+
     private DateTimeImmutable $created;
 
 
     public function __construct(array $data)
     {
-        $this->id = $data['id'];
+        $this->externalId = $data['id'];
         $this->authorId = $data['author_id'];
-        $this->text = $data['content']['text'];
-        $this->isRead = $data['is_read'];
+        $this->isRead = $data['isRead'];
         $this->type = $data['type'];
+        $this->direction = $data['direction'];
         $this->created = (new DateTimeImmutable())->setTimestamp($data['created']);
+
+        $text = match ($data['type'])
+        {
+            'call' => $this->call($data['content']['call']),              // голосовой вызов
+            'image' => $this->image($data['content']['image']),           // фотография
+            'item' => $this->item($data['content']['item']),              // ссылка на объявление
+            'link' => $this->link($data['content']['link']),              // ссылка
+            'location' => $this->location($data['content']['location']),  // геолокация
+            'voice' => $this->voice($data['content']['voice']),           // голосовое сообщение
+            default => $data['content']['text'] ?? null,                  // текстовое сообщение
+        };
+
+        $this->text = $text;
+
     }
 
-    public function getId(): string
+    /** Уведомление о пропущенном вызове */
+    private function call($call): string
     {
-        return $this->id;
+        return sprintf('У Вас пропущенный вызов от пользователя ID = %s', $call['target_user_id']);
+    }
+
+    /** Сообщение в виде image */
+    private function image($image): string
+    {
+        $small = sprintf('<img src="%s" />', $image['sizes']['32x32']);
+        $large = sprintf('<a href="%s" class="ms-3" target="_blank" />Открыть полное фото<a/>', $image['sizes']['1280x960']);
+
+        return $small.' '.$large;
+    }
+
+    /** Сообщение в виде ссылки на объявление */
+    private function item($item): string
+    {
+        $imageUrl = sprintf('<img src="%s" />', $item['image_url']);
+        $title = $item['title'];
+        $itemUrl = $item['item_url'];
+
+        return sprintf('<a href="%s" target="_blank" />', $itemUrl).$title.' '.$imageUrl.'<a/>';
+    }
+
+    /** Сообщение в виде ссылки на ресурс */
+    private function link($link): string
+    {
+        $url = $link['url'];
+        $title = $link['text'];
+
+        return sprintf('<a href="%s" target="_blank" />', $url).$title.'<a/>';
+    }
+
+    /** Сообщение в виде ссылки на яндекс карты */
+    private function location($location): string
+    {
+        $lat = $location['lat'];
+        $lon = $location['lon'];
+        $title = $location['title'];
+
+        $link = sprintf('https://yandex.by/maps/?ll=%s,%s&z=8', $lat, $lon);
+
+        return sprintf('<a href="%s" />', $link).$title.'</a>';
+    }
+
+    /** Уведомление о полученном голосовом сообщении */
+    private function voice($voice): string
+    {
+        return sprintf('У Вас получено голосовое сообщение ID = %s', $voice['voice_id']);
+    }
+
+
+    public function getExternalId(): string
+    {
+        return $this->externalId;
     }
 
     public function getAuthorId(): int
@@ -68,7 +138,7 @@ final class AvitoListMessagesDTO
         return $this->authorId;
     }
 
-    public function getText(): string
+    public function getText(): ?string
     {
         return $this->text;
     }
@@ -81,6 +151,11 @@ final class AvitoListMessagesDTO
     public function getType(): string
     {
         return $this->type;
+    }
+
+    public function getDirection(): string
+    {
+        return $this->direction;
     }
 
     public function getCreated(): DateTimeImmutable
