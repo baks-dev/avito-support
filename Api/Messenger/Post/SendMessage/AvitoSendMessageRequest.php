@@ -70,7 +70,7 @@ final class AvitoSendMessageRequest extends AvitoApi
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical('Ошибка отправки сообщения в чат', array_merge($body, [__FILE__.':'.__LINE__]));
+            $this->logger->critical('avito-support:Ошибка отправки сообщения в чат '.__FILE__.':'.__LINE__, $body);
 
             return false;
         }

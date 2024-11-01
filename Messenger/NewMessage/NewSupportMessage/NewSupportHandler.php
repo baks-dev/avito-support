@@ -19,18 +19,25 @@ use BaksDev\Support\UseCase\Admin\New\Message\SupportMessageDTO;
 use BaksDev\Support\UseCase\Admin\New\SupportDTO;
 use BaksDev\Support\UseCase\Admin\New\SupportHandler;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
 final class NewSupportHandler
 {
+    private LoggerInterface $logger;
+
     public function __construct(
         private SupportHandler $supportHandler,
         private AvitoGetChatsInfoRequest $getChatsInfoRequest,
         private AvitoGetListMessagesRequest $messagesRequest,
         private CurrentSupportEventByTicketInterface $currentSupportEventByTicket,
         private FindExistExternalMessageByIdInterface $findExistMessage,
-    ) {}
+        LoggerInterface $avitoSupportLogger,
+    )
+    {
+        $this->logger = $avitoSupportLogger;
+    }
 
 
     public function __invoke(NewSupportMessage $message): void
@@ -44,6 +51,9 @@ final class NewSupportHandler
         {
             return;
         }
+
+        /** Все известные типы сообщений из реквеста */
+        $messageTypes = ['text', 'call', 'image', 'item', 'link', 'location', 'voice', 'system', 'file'];
 
         /** @var AvitoChatsDTO $chat */
         foreach($chats as $chat)
@@ -123,6 +133,18 @@ final class NewSupportHandler
                     continue;
                 }
 
+                /** Если тип сообщения неизвестный, записываем в лог */
+                if(!in_array($listMessage->getType(), $messageTypes))
+                {
+                    $this->logger->critical(
+                        sprintf(
+                            'Неизвестный тип сообщения - %s',
+                            $listMessage->getType(),
+                        ),
+                        [$listMessage]
+                    );
+                }
+
 
                 /**
                  * Если есть автор сообщения, выбираем юзера чата из коллекции,
@@ -136,13 +158,16 @@ final class NewSupportHandler
                 /** Имя отправителя сообщения */
                 $name = !empty($user) ? $user->current()->getName() : 'Без имени';
 
+                /** Текст сообщения */
+                $text = $listMessage->getText() ?? 'Сообщение доступно в личном кабинете Avito';
+
                 /** SupportMessageDTO */
                 $SupportMessageDTO = new SupportMessageDTO();
 
                 $SupportMessageDTO
                     ->setExternal($listMessage->getExternalId())    // Внешний (Авито) id сообщения
                     ->setName($name)                                // Имя отправителя сообщения
-                    ->setMessage($listMessage->getText())           // Текст сообщения
+                    ->setMessage($text)                             // Текст сообщения
                     ->setDate($listMessage->getCreated())           // Дата сообщения
                 ;
 

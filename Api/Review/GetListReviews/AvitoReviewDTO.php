@@ -37,13 +37,13 @@ final  class AvitoReviewDTO
     private string $sender;
 
     /** Ответ на отзыв */
-    private bool $answer;
+    private array|false $answer;
 
     /** Заголовок объявления */
     private string $title;
 
     /** Можно ли оставить ответ на отзыв */
-    private array|false $canAnswer;
+    private bool $canAnswer;
 
     /** Текст отзыва */
     private string $text;
@@ -58,8 +58,29 @@ final  class AvitoReviewDTO
         $this->answer = !empty($data['answer']) ? $data['answer'] : false;
         $this->title = $data['item']['title'];
         $this->canAnswer = $data['canAnswer'];
-        $this->text = $data['text'];
         $this->created = (new DateTimeImmutable())->setTimestamp($data['createdAt']);
+        $this->text = $this->text($data['text'] ?? '', $data['images'] ?? []);
+    }
+
+    private function text(string $text, array $images = []): string
+    {
+        $result = [];
+
+        if(!empty($images))
+        {
+            foreach($images as $image)
+            {
+                foreach($image['sizes'] as $size)
+                {
+                    $result[] = sprintf(
+                        '<img src="%s" title="%s"/>', $size['url'], $image['number']
+                    );
+                }
+            }
+        }
+
+
+        return !empty($result) ? $text.' '.implode(' ', $result) : trim($text);
     }
 
     public function getId(): int
@@ -77,11 +98,6 @@ final  class AvitoReviewDTO
         return $this->title;
     }
 
-    public function isCanAnswer(): bool
-    {
-        return $this->canAnswer;
-    }
-
     public function getText(): string
     {
         return $this->text;
@@ -92,8 +108,14 @@ final  class AvitoReviewDTO
         return $this->created;
     }
 
-    public function getAnswer(): array|false
+    public function getAnswer(): false|array
     {
         return $this->answer;
     }
+
+    public function isCanAnswer(): bool
+    {
+        return $this->canAnswer;
+    }
+
 }

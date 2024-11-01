@@ -65,7 +65,7 @@ final class AvitoGetListMessagesRequest extends AvitoApi
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical('Ошибка получения сообщений', [__FILE__.':'.__LINE__]);
+            $this->logger->critical('avito-support:Ошибка получения сообщений', [__FILE__.':'.__LINE__]);
 
             return false;
         }

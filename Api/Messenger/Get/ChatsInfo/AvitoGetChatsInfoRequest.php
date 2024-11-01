@@ -66,7 +66,7 @@ final class AvitoGetChatsInfoRequest extends AvitoApi
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical('Ошибка получения чата', [__FILE__.':'.__LINE__]);
+            $this->logger->critical('avito-support:Ошибка получения чата', [__FILE__.':'.__LINE__]);
 
             return false;
         }

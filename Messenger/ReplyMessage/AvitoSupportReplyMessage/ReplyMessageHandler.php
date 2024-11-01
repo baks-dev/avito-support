@@ -83,7 +83,10 @@ final class ReplyMessageHandler
         /** Если у сообщения есть внешний ID, то обрываем  */
         if($message->getExternal() !== null)
         {
-            $this->logger->warning('Отсутствует сообщение для отправки', $SupportDTO->getMessages()->toArray());
+            $this->logger->critical(
+                'avito-support: Отсутствует сообщение для отправки'.self::class.':'.__LINE__,
+                $SupportDTO->getMessages()->toArray()
+            );
 
             return;
         }
