@@ -26,37 +26,28 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Api\Review\ReplyToReview;
 
 use BaksDev\Avito\Api\AvitoApi;
+use InvalidArgumentException;
 
 
 final class AvitoReplyToReviewRequest extends AvitoApi
 {
-    /**  ID отзыва */
-    private int $avitoReview;
+    private string|false $message = false;
 
-    public function avitoReview(string|int $avitoReview): self
+    public function message(string $message): self
     {
-        $this->avitoReview = (int) $avitoReview;
-
+        $this->message = $message;
         return $this;
     }
 
     /**
      * Отправка ответа на отзыв
+     *
      * @see https://developers.avito.ru/api-catalog/ratings/documentation#operation/createReviewAnswerV1
      *
-     * $message - Текст ответа на отзыв
-     *
+     * @var $message - Текст ответа на отзыв
      */
-    public function send(string $message): bool
+    public function send(string|int $review): bool
     {
-
-        /** Собираем в массив и присваиваем в переменную тело запроса */
-        $body = [
-            'message' => $message,
-            'reviewId' => $this->avitoReview
-        ];
-
-
         /**
          * Выполнять операции запроса ТОЛЬКО в PROD окружении
          */
@@ -65,6 +56,21 @@ final class AvitoReplyToReviewRequest extends AvitoApi
             return true;
         }
 
+        if(false === $this->message)
+        {
+            throw new InvalidArgumentException('Invalid Argument $message');
+        }
+
+        if(empty($this->message))
+        {
+            return true;
+        }
+
+        /** Собираем в массив и присваиваем в переменную тело запроса */
+        $body = [
+            'message' => $this->message,
+            'reviewId' => (int) $review
+        ];
 
         $response = $this->TokenHttpClient()
             ->request(
@@ -78,12 +84,8 @@ final class AvitoReplyToReviewRequest extends AvitoApi
         if($response->getStatusCode() !== 200)
         {
             $this->logger->critical(
-                sprintf(
-                    'Ошибка отправки ответа на отзыв. code: %s, message: %s',
-                    $content['error']['code'],
-                    $content['error']['message']
-                ),
-                [__FILE__.':'.__LINE__]
+                sprintf('Ошибка отправки ответа на отзыв  %s', $review),
+                [self::class.':'.__LINE__, $content]
             );
 
             return false;

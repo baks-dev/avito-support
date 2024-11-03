@@ -61,14 +61,19 @@ final class AvitoReadChatRequest extends AvitoApi
                 )
             );
 
+        $content = $response->toArray(false);
+
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical('avito-support:Ошибка прочтения чата', [__FILE__.':'.__LINE__]);
+            $this->logger->critical(
+                sprintf('avito-support: Ошибка прочтения чата %s пользователя %s', $avitoChat, $this->getUser()),
+                [
+                    self::class.':'.__LINE__,
+                    $content
+                ]);
 
             return false;
         }
-
-        $content = $response->toArray(false);
 
         if(empty($content))
         {

@@ -23,7 +23,6 @@ final class AvitoReadMessageHandler
         private CurrentSupportEventInterface $currentSupportEvent,
     ) {}
 
-
     public function __invoke(SupportMessage $message): void
     {
         /** @var SupportEvent $support */
@@ -68,6 +67,5 @@ final class AvitoReadMessageHandler
         $this->readChatRequest
             ->profile($SupportInvariableDTO->getProfile())
             ->read($ticket);
-
     }
 }

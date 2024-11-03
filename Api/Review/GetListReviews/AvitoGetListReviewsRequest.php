@@ -42,6 +42,7 @@ final class AvitoGetListReviewsRequest extends AvitoApi
         $query = [
             /** Смещение */
             'offset' => 1,
+
             /** Лимит количества отзывов */
             'limit' => 50
         ];
@@ -57,18 +58,10 @@ final class AvitoGetListReviewsRequest extends AvitoApi
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical(
-                sprintf(
-                    'Ошибка получения отзывов. code: %s, message: %s',
-                    $content['error']['code'],
-                    $content['error']['message']
-                ),
-                [__FILE__.':'.__LINE__]
-            );
+            $this->logger->critical('Ошибка получения отзывов', [self::class.':'.__LINE__, $content]);
 
             return false;
         }
-
 
         foreach($content['reviews'] as $item)
         {

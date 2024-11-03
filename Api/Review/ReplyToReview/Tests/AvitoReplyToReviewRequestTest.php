@@ -42,7 +42,6 @@ class AvitoReplyToReviewRequestTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
-
         self::$authorization = new AvitoTokenAuthorization(
             new UserProfileUid(),
             $_SERVER['TEST_AVITO_CLIENT'],
@@ -53,14 +52,16 @@ class AvitoReplyToReviewRequestTest extends KernelTestCase
 
     public function testComplete(): void
     {
-
-        /** @var AvitoReplyToReviewRequest $AvitoReplyToReviewRequest */
+        /**
+         * @note Для ручного тестирования закомментировать условие isExecuteEnvironment только PROD
+         * @var AvitoReplyToReviewRequest $AvitoReplyToReviewRequest
+         */
         $AvitoReplyToReviewRequest = self::getContainer()->get(AvitoReplyToReviewRequest::class);
         $AvitoReplyToReviewRequest->tokenHttpClient(self::$authorization);
 
         $reviews = $AvitoReplyToReviewRequest
             ->profile(self::$authorization->getProfile())
-            ->avitoReview('23442221')
+            ->review('23442221')
             ->send('New Test Message');
 
         self::assertTrue($reviews);

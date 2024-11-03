@@ -40,18 +40,23 @@ final class AvitoGetChatsInfoRequest extends AvitoApi
     {
         /** Собираем массив и присваиваем в переменную query параметры запроса */
         $query = [
+
             /** Получение чатов только по объявлениям с указанными item_id */
             //  'item_ids'      => [],
+
             /** При значении true метод возвращает только непрочитанные чаты */
             'unread_only' => 'true',
+
             /**
              * Фильтрация возвращаемых чатов.
              * u2i — чаты по объявлениям;
              * u2u — чаты между пользователями;
              */
             'chat_types' => 'u2i,u2u',
+
             /** Смещение */
             // 'offset' => 1,
+
             /** Лимит количества отзывов */
             // 'limit' => 10
         ];
@@ -63,15 +68,19 @@ final class AvitoGetChatsInfoRequest extends AvitoApi
                 ['query' => $query]
             );
 
+        $content = $response->toArray(false);
 
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical('avito-support:Ошибка получения чата', [__FILE__.':'.__LINE__]);
+            $this->logger->critical(
+                sprintf('avito-support: Ошибка получения чата %s', $this->getUser()),
+                [
+                    self::class.':'.__LINE__,
+                    $content
+                ]);
 
             return false;
         }
-
-        $content = $response->toArray(false);
 
         foreach($content['chats'] as $item)
         {

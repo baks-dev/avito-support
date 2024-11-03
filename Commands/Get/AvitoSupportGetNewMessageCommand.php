@@ -106,7 +106,6 @@ class AvitoSupportGetNewMessageCommand extends Command
             {
                 $this->update($UserProfileUid);
             }
-
         }
 
         $this->io->success('Чаты успешно получены');
@@ -118,9 +117,7 @@ class AvitoSupportGetNewMessageCommand extends Command
     {
         $this->io->note(sprintf('Обновляем профиль %s', $profile->getAttr()));
 
-
         /** Консольную комманду выполняем синхронно */
         $this->messageDispatch->dispatch(new NewSupportMessage($profile));
-
     }
 }

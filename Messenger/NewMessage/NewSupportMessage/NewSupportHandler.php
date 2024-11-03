@@ -8,6 +8,7 @@ use BaksDev\Avito\Support\Api\Messenger\Get\ChatsInfo\AvitoChatsDTO;
 use BaksDev\Avito\Support\Api\Messenger\Get\ChatsInfo\AvitoGetChatsInfoRequest;
 use BaksDev\Avito\Support\Api\Messenger\Get\ListMessages\AvitoGetListMessagesRequest;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoMessageSupport;
+use BaksDev\Support\Entity\Support;
 use BaksDev\Support\Repository\FindExistMessage\FindExistExternalMessageByIdInterface;
 use BaksDev\Support\Repository\SupportCurrentEventByTicket\CurrentSupportEventByTicketInterface;
 use BaksDev\Support\Type\Priority\SupportPriority;
@@ -80,11 +81,8 @@ final class NewSupportHandler
                 continue;
             }
 
-
-            /** SupportDTO */
             $SupportDTO = new SupportDTO();
 
-            /** Если такой тикет уже есть, перезаписываем */
             if($supportEvent)
             {
                 $supportEvent->getDto($SupportDTO);
@@ -116,7 +114,6 @@ final class NewSupportHandler
 
             foreach($listMessages as $listMessage)
             {
-
                 /** Если такое сообщение уже есть в БД, то пропускаем */
                 $messageExist = $this->findExistMessage
                     ->external($listMessage->getExternalId())
@@ -127,24 +124,22 @@ final class NewSupportHandler
                     continue;
                 }
 
-                /** Если тип сообщения  "system", то пропускаем */
+                /** Если тип сообщения "system", то пропускаем */
                 if($listMessage->getType() === 'system')
                 {
                     continue;
                 }
 
-                /** Если тип сообщения неизвестный, записываем в лог */
                 if(!in_array($listMessage->getType(), $messageTypes))
                 {
                     $this->logger->critical(
                         sprintf(
-                            'Неизвестный тип сообщения - %s',
+                            'avito-support: Неизвестный тип сообщения - %s',
                             $listMessage->getType(),
                         ),
-                        [$listMessage]
+                        [self::class.':'.__LINE__, $listMessage]
                     );
                 }
-
 
                 /**
                  * Если есть автор сообщения, выбираем юзера чата из коллекции,
@@ -161,7 +156,7 @@ final class NewSupportHandler
                 /** Текст сообщения */
                 $text = $listMessage->getText() ?? 'Сообщение доступно в личном кабинете Avito';
 
-                /** SupportMessageDTO */
+
                 $SupportMessageDTO = new SupportMessageDTO();
 
                 $SupportMessageDTO
@@ -186,7 +181,15 @@ final class NewSupportHandler
             if($isHandle)
             {
                 /** Сохраняем в БД */
-                $this->supportHandler->handle($SupportDTO);
+                $handle = $this->supportHandler->handle($SupportDTO);
+
+                if($handle instanceof Support)
+                {
+                    $this->logger->critical(
+                        sprintf('avito-support: Ошибка %s при обновлении чата', $handle),
+                        [self::class.':'.__LINE__]
+                    );
+                }
             }
         }
     }

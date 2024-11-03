@@ -118,7 +118,6 @@ class AvitoSupportGetNewReviewCommand extends Command
     {
         $this->io->note(sprintf('Обновляем профиль %s', $profile->getAttr()));
 
-
         /** Консольную комманду выполняем синхронно */
         $this->messageDispatch->dispatch(new NewSupportReviewMessage($profile));
 

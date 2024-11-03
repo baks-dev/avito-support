@@ -42,7 +42,6 @@ class AvitoReadChatRequestTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
-
         self::$authorization = new AvitoTokenAuthorization(
             new UserProfileUid(),
             $_SERVER['TEST_AVITO_CLIENT'],
@@ -53,14 +52,16 @@ class AvitoReadChatRequestTest extends KernelTestCase
 
     public function testComplete(): void
     {
-
-        /** @var AvitoReadChatRequest $AvitoReadChatRequest */
+        /**
+         * @note Для ручного тестирования закомментировать условие isExecuteEnvironment только PROD
+         * @var AvitoReadChatRequest $AvitoReadChatRequest
+         */
         $AvitoReadChatRequest = self::getContainer()->get(AvitoReadChatRequest::class);
         $AvitoReadChatRequest->tokenHttpClient(self::$authorization);
 
         $reviews = $AvitoReadChatRequest
             ->profile(self::$authorization->getProfile())
-            ->read('u2i-861197354-167240276');
+            ->read('id');
 
         self::assertTrue($reviews);
     }

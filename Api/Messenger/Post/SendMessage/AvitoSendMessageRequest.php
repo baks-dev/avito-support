@@ -26,10 +26,20 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Api\Messenger\Post\SendMessage;
 
 use BaksDev\Avito\Api\AvitoApi;
+use InvalidArgumentException;
 
 
 final class AvitoSendMessageRequest extends AvitoApi
 {
+    private string|false $message = false;
+
+    private string $type = 'text';
+
+    public function message(string $message): self
+    {
+        $this->message = $message;
+        return $this;
+    }
 
     /**
      * Отправка сообщения в чат
@@ -38,18 +48,8 @@ final class AvitoSendMessageRequest extends AvitoApi
      *
      * $message - Текст сообщения
      */
-    public function send(
-        string $avitoChat,
-        string $message,
-        ?string $type = 'text',
-    ): bool
+    public function send(string $avitoChat): bool
     {
-        /** Собираем в массив и присваиваем в переменную тело запроса */
-        $body = [
-            'message' => ['text' => $message],
-            'type' => $type
-        ];
-
         /**
          * Выполнять операции запроса ТОЛЬКО в PROD окружении
          */
@@ -57,6 +57,22 @@ final class AvitoSendMessageRequest extends AvitoApi
         {
             return true;
         }
+
+        if($this->message === false)
+        {
+            throw new InvalidArgumentException('Invalid Argument $message');
+        }
+
+        if(empty($this->message))
+        {
+            return true;
+        }
+
+        /** Собираем в массив и присваиваем в переменную тело запроса */
+        $body = [
+            'message' => ['text' => $this->message],
+            'type' => $this->type
+        ];
 
         $response = $this->TokenHttpClient()
             ->request(
@@ -67,10 +83,12 @@ final class AvitoSendMessageRequest extends AvitoApi
                 ]
             );
 
-
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical('avito-support:Ошибка отправки сообщения в чат '.__FILE__.':'.__LINE__, $body);
+            $this->logger->critical(
+                'avito-support:Ошибка отправки сообщения в чат ',
+                [self::class.':'.__LINE__, $body]
+            );
 
             return false;
         }

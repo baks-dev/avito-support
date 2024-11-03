@@ -54,14 +54,19 @@ class AvitoSendMessageRequestTest extends KernelTestCase
     public function testComplete(): void
     {
 
-        /** @var AvitoSendMessageRequest $AvitoSendMessageRequest */
+        /**
+         * @note Для ручного тестирования закомментировать условие isExecuteEnvironment только PROD
+         * @var AvitoSendMessageRequest $AvitoSendMessageRequest
+         */
         $AvitoSendMessageRequest = self::getContainer()->get(AvitoSendMessageRequest::class);
         $AvitoSendMessageRequest->tokenHttpClient(self::$authorization);
 
         $reviews = $AvitoSendMessageRequest
             ->profile(self::$authorization->getProfile())
-            ->send('u2i-H0K0Sv80FDuwecQFq0dCcQ', 'Беру!!!');
+            ->message('Беру!!!')
+            ->send('id');
         //                dd($reviews);
+
         self::assertTrue($reviews);
     }
 }

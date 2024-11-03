@@ -44,7 +44,6 @@ class AvitoGetListReviewsRequestTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
-
         self::$authorization = new AvitoTokenAuthorization(
             new UserProfileUid(UserProfileUid::TEST),
             $_SERVER['TEST_AVITO_CLIENT'],
@@ -61,7 +60,6 @@ class AvitoGetListReviewsRequestTest extends KernelTestCase
         $AvitoGetListReviewsRequest->tokenHttpClient(self::$authorization);
 
         $reviews = $AvitoGetListReviewsRequest->findAll();
-
 
         //         dd(iterator_to_array($reviews));
 
@@ -93,6 +91,5 @@ class AvitoGetListReviewsRequestTest extends KernelTestCase
         {
             self::assertFalse($reviews->valid());
         }
-
     }
 }

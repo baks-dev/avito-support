@@ -45,10 +45,12 @@ final class AvitoGetListMessagesRequest extends AvitoApi
     {
         /** Собираем массив и присваиваем в переменную query параметры запроса */
         $query = [
+
             /** Смещение */
-            //   'offset'        => 1,
+            //   'offset' => 1,
+
             /** Лимит количества сообщений */
-            //  'limit'         => 50
+            //  'limit' => 50
         ];
 
         $response = $this->TokenHttpClient()
@@ -63,14 +65,19 @@ final class AvitoGetListMessagesRequest extends AvitoApi
             );
 
 
+        $content = $response->toArray(false);
+
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical('avito-support:Ошибка получения сообщений', [__FILE__.':'.__LINE__]);
+            $this->logger->critical(sprintf('avito-support: Ошибка получения сообщений %s', $avitoChat) , [
+                self::class.':'.__LINE__,
+                $content
+            ]);
 
             return false;
         }
 
-        $content = $response->toArray(false);
+
 
         foreach(current($content) as $item)
         {

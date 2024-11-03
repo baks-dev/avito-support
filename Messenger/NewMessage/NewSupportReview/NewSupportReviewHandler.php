@@ -7,6 +7,7 @@ namespace BaksDev\Avito\Support\Messenger\NewMessage\NewSupportReview;
 use BaksDev\Avito\Support\Api\Review\GetListReviews\AvitoGetListReviewsRequest;
 use BaksDev\Avito\Support\Api\Review\GetListReviews\AvitoReviewDTO;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoReviewSupport;
+use BaksDev\Support\Entity\Support;
 use BaksDev\Support\Repository\SupportCurrentEventByTicket\CurrentSupportEventByTicketInterface;
 use BaksDev\Support\Type\Priority\SupportPriority;
 use BaksDev\Support\Type\Priority\SupportPriority\Collection\SupportPriorityLow;
@@ -17,16 +18,23 @@ use BaksDev\Support\UseCase\Admin\New\Message\SupportMessageDTO;
 use BaksDev\Support\UseCase\Admin\New\SupportDTO;
 use BaksDev\Support\UseCase\Admin\New\SupportHandler;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final class NewSupportReviewHandler
+final readonly class NewSupportReviewHandler
 {
+    private LoggerInterface $logger;
+
     public function __construct(
         private SupportHandler $supportHandler,
         private AvitoGetListReviewsRequest $avitoGetListReviewsRequest,
         private CurrentSupportEventByTicketInterface $currentSupportEventByTicket,
-    ) {}
+        LoggerInterface $avitoSupportLogger,
+    )
+    {
+        $this->logger = $avitoSupportLogger;
+    }
 
 
     public function __invoke(NewSupportReviewMessage $message): void
@@ -65,7 +73,6 @@ final class NewSupportReviewHandler
                 ->forTicket($ticketId)
                 ->find();
 
-
             /** SupportDTO */
             $SupportDTO = new SupportDTO();
 
@@ -79,12 +86,10 @@ final class NewSupportReviewHandler
                 /** Присваиваем приоритет сообщения "low" */
                 $SupportDTO->setPriority(new SupportPriority(SupportPriorityLow::PARAM));
 
-                /** SupportInvariableDTO */
                 $SupportInvariableDTO = new SupportInvariableDTO();
 
-                $SupportInvariableDTO->setProfile($message->getProfile());
-
                 $SupportInvariableDTO
+                    ->setProfile($message->getProfile())
                     ->setType(new TypeProfileUid(TypeProfileAvitoReviewSupport::TYPE)) // TypeProfileAvitoReviewSupport::TYPE
                     ->setTicket($review->getId()) // Id тикета
                     ->setTitle($review->getTitle()); // Тема сообщения
@@ -97,7 +102,6 @@ final class NewSupportReviewHandler
             $SupportDTO->setStatus(new SupportStatus(SupportStatusOpen::PARAM));
 
 
-            /** SupportMessageDTO */
             $SupportMessageDTO = new SupportMessageDTO();
 
             $SupportMessageDTO
@@ -112,7 +116,16 @@ final class NewSupportReviewHandler
 
 
             /** Сохраняем в БД */
-            $this->supportHandler->handle($SupportDTO);
+            $handle = $this->supportHandler->handle($SupportDTO);
+
+            if($handle instanceof Support)
+            {
+                $this->logger->critical(
+                    sprintf('avito-support: Ошибка %s при обновлении чата', $handle),
+                    [self::class.':'.__LINE__]
+                );
+            }
+
         }
     }
 }

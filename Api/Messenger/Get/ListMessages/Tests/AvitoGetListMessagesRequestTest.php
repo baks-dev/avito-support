@@ -44,7 +44,6 @@ class AvitoGetListMessagesRequestTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
-
         self::$authorization = new AvitoTokenAuthorization(
             new UserProfileUid(UserProfileUid::TEST),
             $_SERVER['TEST_AVITO_CLIENT'],
@@ -55,13 +54,14 @@ class AvitoGetListMessagesRequestTest extends KernelTestCase
 
     public function testComplete(): void
     {
+        self::assertFalse(true);
+        return;
 
         /** @var AvitoGetListMessagesRequest $AvitoGetListMessagesRequest */
         $AvitoGetListMessagesRequest = self::getContainer()->get(AvitoGetListMessagesRequest::class);
         $AvitoGetListMessagesRequest->tokenHttpClient(self::$authorization);
 
-        $messages = $AvitoGetListMessagesRequest->findAll('u2i-861197354-167240276');
-
+        $messages = $AvitoGetListMessagesRequest->findAll('id');
 
         //         dd(iterator_to_array($messages));
 

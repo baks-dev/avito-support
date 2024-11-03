@@ -69,32 +69,25 @@ final class ReplyMessageHandler
             return;
         }
 
-
-        /** Если получено новое сообщение от клиента */
-        $ticket = $SupportInvariableDTO->getTicket();
-
         /**
          * Получаем последнее сообщение
-         *
-         * @var SupportMessageDTO $message
+         * @var SupportMessageDTO $lastMessage
          */
-        $message = $SupportDTO->getMessages()->last();
+        $lastMessage = $SupportDTO->getMessages()->last();
 
         /** Если у сообщения есть внешний ID, то обрываем  */
-        if($message->getExternal() !== null)
+        if($lastMessage->getExternal() !== null)
         {
-            $this->logger->critical(
-                'avito-support: Отсутствует сообщение для отправки'.self::class.':'.__LINE__,
-                $SupportDTO->getMessages()->toArray()
-            );
-
             return;
         }
+
+        $ticket = $SupportInvariableDTO->getTicket();
 
         /** Отправка сообщения */
         $this->messageRequest
             ->profile($SupportInvariableDTO->getProfile())
-            ->send($ticket, $message->getMessage());
+            ->message($lastMessage->getMessage())
+            ->send($ticket);
 
     }
 }

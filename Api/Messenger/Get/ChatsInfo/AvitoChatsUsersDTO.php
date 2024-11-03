@@ -29,7 +29,6 @@ final readonly class AvitoChatsUsersDTO
 {
 
     public function __construct(
-
         /** User Id */
         private int $id,
         /** User name */

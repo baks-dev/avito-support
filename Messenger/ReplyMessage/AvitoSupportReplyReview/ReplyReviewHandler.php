@@ -77,23 +77,18 @@ final class ReplyReviewHandler
          *
          * @var SupportMessageDTO $message
          */
-        $message = $SupportDTO->getMessages()->last();
+        $lastSupportMessage = $SupportDTO->getMessages()->last();
 
         /** Если у сообщения есть внешний ID, то обрываем  */
-        if($message->getExternal() !== null)
+        if($lastSupportMessage->getExternal() !== null)
         {
-            $this->logger->critical(
-                'avito-support: Отсутствует сообщение для отправки'.self::class.':'.__LINE__,
-                $SupportDTO->getMessages()->toArray()
-            );
-
             return;
         }
 
-        /** Отправляем ответ в чат с отзывами */
+        /** Отправляем ответ на отзыв */
         $this->replyToReviewRequest
             ->profile($SupportInvariableDTO->getProfile())
-            ->avitoReview($ticket)
-            ->send($message->getMessage());
+            ->message($lastSupportMessage->getMessage())
+            ->send($ticket);
     }
 }
