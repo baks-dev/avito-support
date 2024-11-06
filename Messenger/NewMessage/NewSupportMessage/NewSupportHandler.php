@@ -170,11 +170,13 @@ final class NewSupportHandler
                     $SupportMessageDTO->setOutMessage() :
                     $SupportMessageDTO->setInMessage();
 
-
                 /** Сохраняем данные SupportMessageDTO в Support */
-                $SupportDTO->addMessage($SupportMessageDTO);
+                $isAddMessage = $SupportDTO->addMessage($SupportMessageDTO);
 
-                $isHandle = true;
+                if(false === $isHandle && true === $isAddMessage)
+                {
+                    $isHandle = true;
+                }
             }
 
             if($isHandle)
