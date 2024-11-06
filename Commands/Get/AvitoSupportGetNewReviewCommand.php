@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Commands\Get;
 
 use BaksDev\Avito\Repository\AllUserProfilesByActiveToken\AllUserProfilesByActiveTokenInterface;
-use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportReview\NewSupportReviewMessage;
+use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportReview\NewAvitoSupportReviewMessage;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -119,7 +119,7 @@ class AvitoSupportGetNewReviewCommand extends Command
         $this->io->note(sprintf('Обновляем профиль %s', $profile->getAttr()));
 
         /** Консольную комманду выполняем синхронно */
-        $this->messageDispatch->dispatch(new NewSupportReviewMessage($profile));
+        $this->messageDispatch->dispatch(new NewAvitoSupportReviewMessage($profile));
 
     }
 }

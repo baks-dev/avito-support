@@ -24,7 +24,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final class NewSupportHandler
+final class NewAvitoSupportHandler
 {
     private LoggerInterface $logger;
 
@@ -40,7 +40,7 @@ final class NewSupportHandler
         $this->logger = $avitoSupportLogger;
     }
 
-    public function __invoke(NewSupportMessage $message): void
+    public function __invoke(NewAvitoSupportMessage $message): void
     {
         /** Получаем все непрочитанные чаты */
         $chats = $this->getChatsInfoRequest
@@ -184,7 +184,7 @@ final class NewSupportHandler
                 /** Сохраняем в БД */
                 $handle = $this->supportHandler->handle($SupportDTO);
 
-                if($handle instanceof Support)
+                if(false === ($handle instanceof Support))
                 {
                     $this->logger->critical(
                         sprintf('avito-support: Ошибка %s при обновлении чата', $handle),

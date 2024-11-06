@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Schedule\AvitoGetNewReview;
 
 use BaksDev\Avito\Repository\AllUserProfilesByActiveToken\AllUserProfilesByActiveTokenInterface;
-use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportReview\NewSupportReviewMessage;
+use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportReview\NewAvitoSupportReviewMessage;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -49,7 +49,7 @@ final readonly class AvitoGetNewReviewHandler
             foreach($profiles as $profile)
             {
                 $this->messageDispatch->dispatch(
-                    message: new NewSupportReviewMessage($profile),
+                    message: new NewAvitoSupportReviewMessage($profile),
                     transport: (string) $profile,
                 );
             }

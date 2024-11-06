@@ -7,8 +7,8 @@ namespace BaksDev\Avito\Support\Messenger\NewMessage\NewSupportMessage;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** @see NewSupportReviewMessage */
-final class NewSupportMessage
+/** @see NewAvitoSupportReviewMessage */
+final class NewAvitoSupportMessage
 {
     /** Идентификатор */
     #[Assert\Uuid]

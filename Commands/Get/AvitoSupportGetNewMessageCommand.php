@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Avito\Support\Commands\Get;
 
 use BaksDev\Avito\Repository\AllUserProfilesByActiveToken\AllUserProfilesByActiveTokenInterface;
-use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportMessage\NewSupportMessage;
+use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportMessage\NewAvitoSupportMessage;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -118,6 +118,6 @@ class AvitoSupportGetNewMessageCommand extends Command
         $this->io->note(sprintf('Обновляем профиль %s', $profile->getAttr()));
 
         /** Консольную комманду выполняем синхронно */
-        $this->messageDispatch->dispatch(new NewSupportMessage($profile));
+        $this->messageDispatch->dispatch(new NewAvitoSupportMessage($profile));
     }
 }

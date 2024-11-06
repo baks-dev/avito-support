@@ -22,7 +22,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final readonly class NewSupportReviewHandler
+final readonly class NewAvitoSupportReviewHandler
 {
     private LoggerInterface $logger;
 
@@ -37,7 +37,7 @@ final readonly class NewSupportReviewHandler
     }
 
 
-    public function __invoke(NewSupportReviewMessage $message): void
+    public function __invoke(NewAvitoSupportReviewMessage $message): void
     {
         /** Получаем все отзывы */
         $reviews = $this->avitoGetListReviewsRequest

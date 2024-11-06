@@ -18,7 +18,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final class ReplyReviewHandler
+final class ReplyAvitoReviewHandler
 {
     private LoggerInterface $logger;
 
