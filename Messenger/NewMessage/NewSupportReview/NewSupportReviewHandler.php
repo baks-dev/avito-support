@@ -78,7 +78,7 @@ final readonly class NewSupportReviewHandler
 
             if($supportEvent)
             {
-                $supportEvent->getDto($supportEvent);
+                $supportEvent->getDto($SupportDTO);
             }
 
             if(false === $supportEvent)

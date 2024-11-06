@@ -40,7 +40,6 @@ final class NewSupportHandler
         $this->logger = $avitoSupportLogger;
     }
 
-
     public function __invoke(NewSupportMessage $message): void
     {
         /** Получаем все непрочитанные чаты */
