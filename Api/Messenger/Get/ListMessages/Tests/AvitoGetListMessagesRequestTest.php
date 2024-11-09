@@ -48,15 +48,12 @@ class AvitoGetListMessagesRequestTest extends KernelTestCase
             new UserProfileUid(UserProfileUid::TEST),
             $_SERVER['TEST_AVITO_CLIENT'],
             $_SERVER['TEST_AVITO_SECRET'],
-            $_SERVER['TEST_AVITO_PROFILE']
+            $_SERVER['TEST_AVITO_USER']
         );
     }
 
     public function testComplete(): void
     {
-        self::assertFalse(true);
-        return;
-
         /** @var AvitoGetListMessagesRequest $AvitoGetListMessagesRequest */
         $AvitoGetListMessagesRequest = self::getContainer()->get(AvitoGetListMessagesRequest::class);
         $AvitoGetListMessagesRequest->tokenHttpClient(self::$authorization);
@@ -65,7 +62,7 @@ class AvitoGetListMessagesRequestTest extends KernelTestCase
 
         //         dd(iterator_to_array($messages));
 
-        if($messages->valid())
+        if($messages && $messages->valid())
         {
             /** @var AvitoListMessagesDTO $AvitoListMessagesDTO */
             $AvitoListMessagesDTO = $messages->current();

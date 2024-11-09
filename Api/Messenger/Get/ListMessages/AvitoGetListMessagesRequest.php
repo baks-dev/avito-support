@@ -43,6 +43,7 @@ final class AvitoGetListMessagesRequest extends AvitoApi
      */
     public function findAll(string $avitoChat): Generator|false
     {
+
         /** Собираем массив и присваиваем в переменную query параметры запроса */
         $query = [
 
@@ -65,19 +66,18 @@ final class AvitoGetListMessagesRequest extends AvitoApi
             );
 
 
-        $content = $response->toArray(false);
-
+        // Response body is empty
         if($response->getStatusCode() !== 200)
         {
-            $this->logger->critical(sprintf('avito-support: Ошибка получения сообщений %s', $avitoChat) , [
-                self::class.':'.__LINE__,
-                $content
-            ]);
+            $this->logger->critical(
+                sprintf('avito-support: Ошибка получения сообщений %s', $avitoChat),
+                [self::class.':'.__LINE__]
+            );
 
             return false;
         }
 
-
+        $content = $response->toArray(false);
 
         foreach(current($content) as $item)
         {

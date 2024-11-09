@@ -31,13 +31,26 @@ use InvalidArgumentException;
 
 final class AvitoReplyToReviewRequest extends AvitoApi
 {
-    private string|false $message = false;
+    /**  ID отзыва */
+    private int|false $review = false;
 
-    public function message(string $message): self
+    public function review(string|int $review): self
+    {
+        $this->review = (int) $review;
+
+        return $this;
+    }
+
+    private string $message;
+
+    public function setMessage(string $message): self
     {
         $this->message = $message;
         return $this;
     }
+
+
+
 
     /**
      * Отправка ответа на отзыв
@@ -46,7 +59,7 @@ final class AvitoReplyToReviewRequest extends AvitoApi
      *
      * @var $message - Текст ответа на отзыв
      */
-    public function send(string|int $review): bool
+    public function send(string $message): bool
     {
         /**
          * Выполнять операции запроса ТОЛЬКО в PROD окружении
@@ -56,20 +69,15 @@ final class AvitoReplyToReviewRequest extends AvitoApi
             return true;
         }
 
-        if(false === $this->message)
+        if(false === $this->review)
         {
-            throw new InvalidArgumentException('Invalid Argument $message');
-        }
-
-        if(empty($this->message))
-        {
-            return true;
+            throw new InvalidArgumentException('Invalid Argument $review');
         }
 
         /** Собираем в массив и присваиваем в переменную тело запроса */
         $body = [
-            'message' => $this->message,
-            'reviewId' => (int) $review
+            'message' => $message,
+            'reviewId' => $this->review
         ];
 
         $response = $this->TokenHttpClient()
@@ -84,7 +92,7 @@ final class AvitoReplyToReviewRequest extends AvitoApi
         if($response->getStatusCode() !== 200)
         {
             $this->logger->critical(
-                sprintf('Ошибка отправки ответа на отзыв  %s', $review),
+                sprintf('Ошибка отправки ответа на отзыв  %s', $this->review),
                 [self::class.':'.__LINE__, $content]
             );
 

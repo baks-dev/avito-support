@@ -48,7 +48,7 @@ class AvitoGetListReviewsRequestTest extends KernelTestCase
             new UserProfileUid(UserProfileUid::TEST),
             $_SERVER['TEST_AVITO_CLIENT'],
             $_SERVER['TEST_AVITO_SECRET'],
-            $_SERVER['TEST_AVITO_PROFILE']
+            $_SERVER['TEST_AVITO_USER']
         );
     }
 

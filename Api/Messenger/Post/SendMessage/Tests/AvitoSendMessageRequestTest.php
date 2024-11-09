@@ -47,7 +47,7 @@ class AvitoSendMessageRequestTest extends KernelTestCase
             new UserProfileUid(),
             $_SERVER['TEST_AVITO_CLIENT'],
             $_SERVER['TEST_AVITO_SECRET'],
-            $_SERVER['TEST_AVITO_PROFILE']
+            $_SERVER['TEST_AVITO_USER']
         );
     }
 
