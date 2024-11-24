@@ -114,8 +114,8 @@ final class NewAvitoSupportHandler
             /** Присваиваем значения по умолчанию */
             if(false === $supportEvent)
             {
-                /** Присваиваем приоритет сообщения "высокий", так как это сообщение от пользователя */
-                $SupportDTO->setPriority(new SupportPriority(SupportPriorityHeight::PARAM));
+                /** Присваиваем приоритет сообщения Высокий «Height», так как это сообщение от пользователя */
+                $SupportDTO->setPriority(new SupportPriority(SupportPriorityHeight::class));
 
                 /** SupportInvariableDTO */
                 $SupportInvariableDTO = new SupportInvariableDTO();
@@ -131,7 +131,7 @@ final class NewAvitoSupportHandler
             }
 
             /** Присваиваем статус "Открытый", так как сообщение еще не прочитано   */
-            $SupportDTO->setStatus(new SupportStatus(SupportStatusOpen::PARAM));
+            $SupportDTO->setStatus(new SupportStatus(SupportStatusOpen::class));
 
             $isHandle = false;
 

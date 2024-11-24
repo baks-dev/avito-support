@@ -1,4 +1,25 @@
 <?php
+/*
+ *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is furnished
+ *  to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
 
 declare(strict_types=1);
 
@@ -83,14 +104,14 @@ final readonly class NewAvitoSupportReviewHandler
 
             if(false === $supportEvent)
             {
-                /** Присваиваем приоритет сообщения "low" */
-                $SupportDTO->setPriority(new SupportPriority(SupportPriorityLow::PARAM));
+                /** Присваиваем приоритет сообщения Низкий «low» */
+                $SupportDTO->setPriority(new SupportPriority(SupportPriorityLow::class));
 
                 $SupportInvariableDTO = new SupportInvariableDTO();
 
                 $SupportInvariableDTO
                     ->setProfile($message->getProfile())
-                    ->setType(new TypeProfileUid(TypeProfileAvitoReviewSupport::TYPE)) // TypeProfileAvitoReviewSupport::TYPE
+                    ->setType(new TypeProfileUid(TypeProfileAvitoReviewSupport::TYPE))
                     ->setTicket($review->getId()) // Id тикета
                     ->setTitle($review->getTitle()); // Тема сообщения
 
@@ -99,7 +120,7 @@ final readonly class NewAvitoSupportReviewHandler
             }
 
             /** Присваиваем статус "Открытый", так как сообщение еще не прочитано   */
-            $SupportDTO->setStatus(new SupportStatus(SupportStatusOpen::PARAM));
+            $SupportDTO->setStatus(new SupportStatus(SupportStatusOpen::class));
 
 
             $SupportMessageDTO = new SupportMessageDTO();
