@@ -148,7 +148,7 @@ final class NewAvitoSupportHandler
                 }
 
                 /** Если тип сообщения "system", то пропускаем */
-                if($listMessage->getType() === 'system')
+                if($listMessage->getType() === 'system' || $listMessage->getType() === 'deleted')
                 {
                     continue;
                 }
