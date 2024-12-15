@@ -31,7 +31,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag('baks.users.profile.type')]
 final class TypeProfileAvitoMessageSupport implements TypeProfileInterface
 {
-    public const TYPE = '6f3a70af-b003-7db2-b98b-00e9cad903fe';
+    public const string TYPE = '6f3a70af-b003-7db2-b98b-00e9cad903fe';
 
     public function __toString(): string
     {
