@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -29,15 +29,11 @@ use DateTimeImmutable;
 
 final class AvitoReviewDTO
 {
-
     /** ID отзыва */
     private int $id;
 
     /** Имя отправителя */
     private string $sender;
-
-    /** Ответ на отзыв */
-    private array|false $answer;
 
     /** Заголовок объявления */
     private string $title;
@@ -55,7 +51,6 @@ final class AvitoReviewDTO
     {
         $this->id = $data['id'];
         $this->sender = $data['sender']['name'];
-        $this->answer = !empty($data['answer']) ? $data['answer'] : false;
         $this->title = $data['item']['title'];
         $this->canAnswer = $data['canAnswer'];
         $this->created = (new DateTimeImmutable())->setTimestamp($data['createdAt']);
@@ -127,11 +122,6 @@ final class AvitoReviewDTO
     public function getCreated(): DateTimeImmutable
     {
         return $this->created;
-    }
-
-    public function getAnswer(): false|array
-    {
-        return $this->answer;
     }
 
     public function isCanAnswer(): bool

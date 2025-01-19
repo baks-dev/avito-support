@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ namespace BaksDev\Avito\Support\Messenger\NewMessage\NewSupportReview;
 use BaksDev\Avito\Support\Api\Review\GetListReviews\AvitoGetListReviewsRequest;
 use BaksDev\Avito\Support\Api\Review\GetListReviews\AvitoReviewDTO;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoReviewSupport;
+use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Support\Entity\Support;
 use BaksDev\Support\Repository\SupportCurrentEventByTicket\CurrentSupportEventByTicketInterface;
 use BaksDev\Support\Type\Priority\SupportPriority;
@@ -51,12 +52,12 @@ final readonly class NewAvitoSupportReviewHandler
         private SupportHandler $supportHandler,
         private AvitoGetListReviewsRequest $avitoGetListReviewsRequest,
         private CurrentSupportEventByTicketInterface $currentSupportEventByTicket,
+        private DeduplicatorInterface $deduplicator,
         LoggerInterface $avitoSupportLogger,
     )
     {
         $this->logger = $avitoSupportLogger;
     }
-
 
     public function __invoke(NewAvitoSupportReviewMessage $message): void
     {
@@ -70,24 +71,31 @@ final readonly class NewAvitoSupportReviewHandler
             return;
         }
 
+        $this->deduplicator
+            ->namespace('avito-support')
+            ->expiresAfter('1 day');
+
         /** @var AvitoReviewDTO $review */
         foreach($reviews as $review)
         {
-
             /** Если на отзыв нельзя ответить, пропускаем */
             if(false === $review->isCanAnswer())
             {
                 continue;
             }
 
-            /** Если ответ на отзыв уже есть, пропускаем такой отзыв */
-            //            if(false !== $review->getAnswer())
-            //            {
-            //                continue;
-            //            }
-
             /** Получаем ID чата с отзывом  */
             $ticketId = $review->getId();
+
+            $Deduplicator = $this->deduplicator->deduplication([$ticketId, self::class]);
+
+            if($Deduplicator->isExecuted())
+            {
+                continue;
+            }
+
+            $Deduplicator->save();
+            unset($Deduplicator);
 
             /** Если такой чат существует, сохраняем его event в переменную  */
             $supportEvent = $this->currentSupportEventByTicket
