@@ -30,7 +30,6 @@ use BaksDev\Avito\Support\Api\Review\GetListReviews\AvitoReviewDTO;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoReviewSupport;
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Support\Entity\Support;
-use BaksDev\Support\Repository\SupportCurrentEventByTicket\CurrentSupportEventByTicketInterface;
 use BaksDev\Support\Type\Priority\SupportPriority;
 use BaksDev\Support\Type\Priority\SupportPriority\Collection\SupportPriorityLow;
 use BaksDev\Support\Type\Status\SupportStatus;
@@ -41,95 +40,99 @@ use BaksDev\Support\UseCase\Admin\New\SupportDTO;
 use BaksDev\Support\UseCase\Admin\New\SupportHandler;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
 final readonly class NewAvitoSupportReviewHandler
 {
-    private LoggerInterface $logger;
-
     public function __construct(
+        #[Target('avitoLogger')] private LoggerInterface $logger,
         private SupportHandler $supportHandler,
         private AvitoGetListReviewsRequest $avitoGetListReviewsRequest,
-        private CurrentSupportEventByTicketInterface $currentSupportEventByTicket,
         private DeduplicatorInterface $deduplicator,
-        LoggerInterface $avitoSupportLogger,
     )
     {
-        $this->logger = $avitoSupportLogger;
+        $this->deduplicator->namespace('avito-support');
     }
 
     public function __invoke(NewAvitoSupportReviewMessage $message): void
     {
-        /** Получаем все отзывы */
+
+        $isExecuted = $this
+            ->deduplicator
+            ->expiresAfter('1 minute')
+            ->deduplication([self::class]);
+
+        if(true === $isExecuted->isExecuted())
+        {
+            return;
+        }
+
+        $isExecuted->save();
+
+        /**
+         * Получаем все отзывы
+         */
+
         $reviews = $this->avitoGetListReviewsRequest
             ->profile($message->getProfile())
             ->findAll();
 
         if(!$reviews->valid())
         {
+            $isExecuted->delete();
             return;
         }
-
-        $this->deduplicator
-            ->namespace('avito-support')
-            ->expiresAfter('1 day');
 
         /** @var AvitoReviewDTO $review */
         foreach($reviews as $review)
         {
-            /** Если на отзыв нельзя ответить, пропускаем */
+            /** Если на отзыв нельзя ответить (в случае ответа), пропускаем */
             if(false === $review->isCanAnswer())
             {
                 continue;
             }
 
-            /** Получаем ID чата с отзывом  */
-            $ticketId = $review->getId();
+            /** Пропускаем обработанные отзывы */
 
-            $Deduplicator = $this->deduplicator->deduplication([$ticketId, self::class]);
+            $Deduplicator = $this->deduplicator
+                ->expiresAfter('1 day')
+                ->deduplication([$review->getId(), self::class]);
 
-            if($Deduplicator->isExecuted())
+            if(true === $Deduplicator->isExecuted())
             {
                 continue;
             }
 
-            $Deduplicator->save();
-            unset($Deduplicator);
+            /**
+             * Создаем тикет
+             */
 
-            /** Если такой чат существует, сохраняем его event в переменную  */
-            $supportEvent = $this->currentSupportEventByTicket
-                ->forTicket($ticketId)
-                ->find();
-
-            /** SupportDTO */
             $SupportDTO = new SupportDTO();
 
-            if($supportEvent)
-            {
-                $supportEvent->getDto($SupportDTO);
-            }
+            $SupportDTO
+                ->setStatus(new SupportStatus(SupportStatusOpen::class))
+                ->setPriority(new SupportPriority(SupportPriorityLow::class));
 
-            if(false === $supportEvent)
-            {
-                /** Присваиваем приоритет сообщения Низкий «low» */
-                $SupportDTO->setPriority(new SupportPriority(SupportPriorityLow::class));
 
-                $SupportInvariableDTO = new SupportInvariableDTO();
+            /**
+             * Создаем неизменные данные
+             */
 
-                $SupportInvariableDTO
-                    ->setProfile($message->getProfile())
-                    ->setType(new TypeProfileUid(TypeProfileAvitoReviewSupport::TYPE))
-                    ->setTicket($review->getId()) // Id тикета
-                    ->setTitle($review->getTitle()); // Тема сообщения
+            $SupportInvariableDTO = new SupportInvariableDTO();
 
-                /** Сохраняем данные SupportInvariableDTO в Support */
-                $SupportDTO->setInvariable($SupportInvariableDTO);
-            }
+            $SupportInvariableDTO
+                ->setProfile($message->getProfile())
+                ->setType(new TypeProfileUid(TypeProfileAvitoReviewSupport::TYPE))
+                ->setTicket($review->getId()) // Id тикета
+                ->setTitle($review->getTitle()); // Тема сообщения
 
-            /** Присваиваем статус "Открытый", так как сообщение еще не прочитано   */
-            $SupportDTO->setStatus(new SupportStatus(SupportStatusOpen::class));
+            $SupportDTO->setInvariable($SupportInvariableDTO);
 
+            /**
+             * Создаем сообщение с отзывом
+             */
 
             $SupportMessageDTO = new SupportMessageDTO();
 
@@ -140,21 +143,34 @@ final readonly class NewAvitoSupportReviewHandler
                 ->setDate($review->getCreated())    // Дата сообщения
                 ->setInMessage();                   // Входящее сообщение
 
-            /** Сохраняем данные в Support */
             $SupportDTO->addMessage($SupportMessageDTO);
 
 
-            /** Сохраняем в БД */
+            /**
+             * Сохраняем новый отзыв
+             */
+
             $handle = $this->supportHandler->handle($SupportDTO);
 
             if($handle instanceof Support)
             {
-                $this->logger->critical(
-                    sprintf('avito-support: Ошибка %s при обновлении чата', $handle),
+                $this->logger->info(
+                    sprintf('Добавили новый отзыв %s', $review->getId()),
                     [self::class.':'.__LINE__]
                 );
+
+                $Deduplicator->save();
+                unset($Deduplicator);
+
+                continue;
             }
 
+            $this->logger->critical(
+                sprintf('avito-support: Ошибка %s при добавлении отзыва', $handle),
+                [self::class.':'.__LINE__]
+            );
         }
+
+        $isExecuted->delete();
     }
 }
