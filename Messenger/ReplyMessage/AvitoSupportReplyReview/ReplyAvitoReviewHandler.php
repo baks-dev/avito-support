@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -36,31 +36,25 @@ use BaksDev\Support\UseCase\Admin\New\Invariable\SupportInvariableDTO;
 use BaksDev\Support\UseCase\Admin\New\Message\SupportMessageDTO;
 use BaksDev\Support\UseCase\Admin\New\SupportDTO;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final class ReplyAvitoReviewHandler
+final readonly class ReplyAvitoReviewHandler
 {
-    private LoggerInterface $logger;
-
     public function __construct(
         private AvitoReplyToReviewRequest $replyToReviewRequest,
         private CurrentSupportEventInterface $currentSupportEvent,
-        LoggerInterface $avitoSupportLogger,
-    )
-    {
-        $this->logger = $avitoSupportLogger;
-    }
+    ) {}
 
     public function __invoke(SupportMessage $message): void
     {
-
         /** @var SupportEvent $support */
         $support = $message->getId();
 
-        $this->currentSupportEvent->forSupport($support);
-
-        $supportEvent = $this->currentSupportEvent->find();
+        $supportEvent = $this->currentSupportEvent
+            ->forSupport($support)
+            ->find();
 
         if(false === $supportEvent)
         {

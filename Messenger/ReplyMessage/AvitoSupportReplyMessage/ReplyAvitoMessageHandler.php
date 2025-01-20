@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -38,22 +38,18 @@ use BaksDev\Support\UseCase\Admin\New\Invariable\SupportInvariableDTO;
 use BaksDev\Support\UseCase\Admin\New\Message\SupportMessageDTO;
 use BaksDev\Support\UseCase\Admin\New\SupportDTO;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final class ReplyAvitoMessageHandler
+final readonly class ReplyAvitoMessageHandler
 {
-    private LoggerInterface $logger;
-
     public function __construct(
+        #[Target('avitoSupportLogger')] private LoggerInterface $logger,
         private AvitoSendMessageRequest $messageRequest,
         private CurrentSupportEventInterface $currentSupportEvent,
-        private readonly MessageDispatchInterface $messageDispatcher,
-        LoggerInterface $avitoSupportLogger,
-    )
-    {
-        $this->logger = $avitoSupportLogger;
-    }
+        private MessageDispatchInterface $messageDispatcher,
+    ) {}
 
     public function __invoke(SupportMessage $message): void
     {
@@ -121,6 +117,8 @@ final class ReplyAvitoMessageHandler
                 stamps: [new MessageDelay('1 minutes')],
                 transport: 'avito-support'
             );
+
+            $this->logger->critical('Пробуем отправить отправить через минуту', [self::class.':'.__LINE__]);
         }
     }
 }

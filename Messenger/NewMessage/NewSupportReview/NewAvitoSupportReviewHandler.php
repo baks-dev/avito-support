@@ -47,7 +47,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final readonly class NewAvitoSupportReviewHandler
 {
     public function __construct(
-        #[Target('avitoLogger')] private LoggerInterface $logger,
+        #[Target('avitoSupportLogger')] private LoggerInterface $logger,
         private SupportHandler $supportHandler,
         private AvitoGetListReviewsRequest $avitoGetListReviewsRequest,
         private DeduplicatorInterface $deduplicator,
