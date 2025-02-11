@@ -30,6 +30,8 @@ use BaksDev\Avito\Support\Api\Review\GetListReviews\AvitoReviewDTO;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoReviewSupport;
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Support\Entity\Support;
+use BaksDev\Support\Repository\ExistTicket\ExistSupportTicketInterface;
+use BaksDev\Support\Repository\FindExistTicket\FindExistTicketInterface;
 use BaksDev\Support\Type\Priority\SupportPriority;
 use BaksDev\Support\Type\Priority\SupportPriority\Collection\SupportPriorityLow;
 use BaksDev\Support\Type\Status\SupportStatus;
@@ -50,6 +52,7 @@ final readonly class NewAvitoSupportReviewHandler
         #[Target('avitoSupportLogger')] private LoggerInterface $logger,
         private SupportHandler $supportHandler,
         private AvitoGetListReviewsRequest $avitoGetListReviewsRequest,
+        private ExistSupportTicketInterface $ExistSupportTicket,
         private DeduplicatorInterface $deduplicator,
     )
     {
@@ -102,6 +105,15 @@ final readonly class NewAvitoSupportReviewHandler
 
             if(true === $Deduplicator->isExecuted())
             {
+                continue;
+            }
+
+
+            $isExistTicket = $this->ExistSupportTicket->ticket($review->getId())->exist();
+
+            if(true === $isExistTicket)
+            {
+                $Deduplicator->save();
                 continue;
             }
 
