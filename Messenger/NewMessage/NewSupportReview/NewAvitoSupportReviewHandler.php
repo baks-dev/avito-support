@@ -54,16 +54,14 @@ final readonly class NewAvitoSupportReviewHandler
         private AvitoGetListReviewsRequest $avitoGetListReviewsRequest,
         private ExistSupportTicketInterface $ExistSupportTicket,
         private DeduplicatorInterface $deduplicator,
-    )
-    {
-        $this->deduplicator->namespace('avito-support');
-    }
+    ) {}
 
     public function __invoke(NewAvitoSupportReviewMessage $message): void
     {
 
         $isExecuted = $this
             ->deduplicator
+            ->namespace('avito-support')
             ->expiresAfter('1 minute')
             ->deduplication([self::class]);
 
