@@ -67,7 +67,7 @@ final readonly class NewAvitoSupportHandler
             ->profile($message->getProfile())
             ->findAll();
 
-        if(!$chats->valid())
+        if(false === $chats || false === $chats->valid())
         {
             return;
         }
