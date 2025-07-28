@@ -81,17 +81,18 @@ final class AvitoSendMessageRequest extends AvitoApi
                 ]
             );
 
+        $content = $response->toArray(false);
+
         if($response->getStatusCode() !== 200)
         {
             $this->logger->critical(
                 'avito-support: Ошибка отправки сообщения в чат ',
-                [self::class.':'.__LINE__, $body]
+                [self::class.':'.__LINE__, $body, $content],
             );
 
             return false;
         }
 
-        $content = $response->toArray(false);
 
         if(empty($content))
         {
