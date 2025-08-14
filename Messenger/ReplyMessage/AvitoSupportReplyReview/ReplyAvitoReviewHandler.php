@@ -56,15 +56,13 @@ final readonly class ReplyAvitoReviewHandler
             ->forSupport($support)
             ->find();
 
-        if(false === $supportEvent)
+        if(false === ($supportEvent instanceof SupportEvent))
         {
             return;
         }
 
         /** @var SupportDTO $SupportDTO */
-        $SupportDTO = new SupportDTO();
-
-        $supportEvent->getDto($SupportDTO);
+        $SupportDTO = $supportEvent->getDto(SupportDTO::class);
 
         /** @var SupportInvariableDTO $SupportInvariableDTO */
         $SupportInvariableDTO = $SupportDTO->getInvariable();

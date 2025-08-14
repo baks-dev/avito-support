@@ -29,6 +29,7 @@ use BaksDev\Avito\Support\Api\Messenger\Get\ChatsInfo\AvitoChatsDTO;
 use BaksDev\Avito\Support\Api\Messenger\Get\ChatsInfo\AvitoGetChatsInfoRequest;
 use BaksDev\Avito\Support\Api\Messenger\Get\ListMessages\AvitoGetListMessagesRequest;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoMessageSupport;
+use BaksDev\Support\Entity\Event\SupportEvent;
 use BaksDev\Support\Entity\Support;
 use BaksDev\Support\Repository\FindExistMessage\FindExistExternalMessageByIdInterface;
 use BaksDev\Support\Repository\SupportCurrentEventByTicket\CurrentSupportEventByTicketInterface;
@@ -100,12 +101,10 @@ final readonly class NewAvitoSupportHandler
                 continue;
             }
 
-            $SupportDTO = new SupportDTO();
 
-            if($supportEvent)
-            {
-                $supportEvent->getDto($SupportDTO);
-            }
+            $SupportDTO = ($supportEvent instanceof SupportEvent)
+                ? $supportEvent->getDto(SupportDTO::class)
+                : new SupportDTO();
 
             /** Присваиваем значения по умолчанию */
             if(false === $supportEvent)
@@ -124,6 +123,10 @@ final readonly class NewAvitoSupportHandler
 
                 /** Сохраняем данные SupportInvariableDTO в Support */
                 $SupportDTO->setInvariable($SupportInvariableDTO);
+
+                /** Присваиваем токен для последующего поиска */
+                $SupportDTO->getToken()->setValue($message->getProfile());
+
             }
 
             /** Присваиваем статус "Открытый", так как сообщение еще не прочитано   */
@@ -156,7 +159,7 @@ final readonly class NewAvitoSupportHandler
                             'avito-support: Неизвестный тип сообщения - %s',
                             $listMessage->getType(),
                         ),
-                        [self::class.':'.__LINE__, $listMessage]
+                        [self::class.':'.__LINE__, $listMessage],
                     );
                 }
 
@@ -208,7 +211,7 @@ final readonly class NewAvitoSupportHandler
                 {
                     $this->logger->critical(
                         sprintf('avito-support: Ошибка %s при обновлении чата', $handle),
-                        [self::class.':'.__LINE__]
+                        [self::class.':'.__LINE__],
                     );
                 }
             }

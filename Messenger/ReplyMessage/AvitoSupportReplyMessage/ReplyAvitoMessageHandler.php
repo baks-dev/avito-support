@@ -41,6 +41,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
+/** Отвечает на сообщение пользователя */
 #[AsMessageHandler(priority: 0)]
 final readonly class ReplyAvitoMessageHandler
 {
@@ -59,17 +60,15 @@ final readonly class ReplyAvitoMessageHandler
 
         $this->currentSupportEvent->forSupport($support);
 
-        $supportEvent = $this->currentSupportEvent->find();
+        $SupportEvent = $this->currentSupportEvent->find();
 
-        if(false === $supportEvent)
+        if(false === ($SupportEvent instanceof SupportEvent))
         {
             return;
         }
 
         /** @var SupportDTO $SupportDTO */
-        $SupportDTO = new SupportDTO();
-
-        $supportEvent->getDto($SupportDTO);
+        $SupportDTO = $SupportEvent->getDto(SupportDTO::class);
 
         /** @var SupportInvariableDTO $SupportInvariableDTO */
         $SupportInvariableDTO = $SupportDTO->getInvariable();
@@ -91,6 +90,7 @@ final readonly class ReplyAvitoMessageHandler
 
         /**
          * Получаем последнее сообщение
+         *
          * @var SupportMessageDTO $lastMessage
          */
         $lastMessage = $SupportDTO->getMessages()->last();
@@ -115,7 +115,7 @@ final readonly class ReplyAvitoMessageHandler
             $this->messageDispatcher->dispatch(
                 message: $message,
                 stamps: [new MessageDelay('1 minutes')],
-                transport: 'avito-support'
+                transport: 'avito-support',
             );
 
             $this->logger->critical('Пробуем отправить отправить через минуту', [self::class.':'.__LINE__]);

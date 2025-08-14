@@ -119,11 +119,17 @@ final readonly class NewAvitoSupportReviewHandler
              * Создаем тикет
              */
 
-            $SupportDTO = new SupportDTO();
+            $SupportDTO = new SupportDTO(); // done
+
+            /** Присваиваем токен для последующего поиска */
+            $SupportDTO
+                ->getToken()
+                ->setValue($message->getProfile());
 
             $SupportDTO
                 ->setStatus(new SupportStatus(SupportStatusOpen::class))
                 ->setPriority(new SupportPriority(SupportPriorityLow::class));
+
 
 
             /**
@@ -166,7 +172,7 @@ final readonly class NewAvitoSupportReviewHandler
             {
                 $this->logger->info(
                     sprintf('Добавили новый отзыв %s', $review->getId()),
-                    [self::class.':'.__LINE__]
+                    [self::class.':'.__LINE__],
                 );
 
                 $Deduplicator->save();
@@ -177,7 +183,7 @@ final readonly class NewAvitoSupportReviewHandler
 
             $this->logger->critical(
                 sprintf('avito-support: Ошибка %s при добавлении отзыва', $handle),
-                [self::class.':'.__LINE__]
+                [self::class.':'.__LINE__],
             );
         }
 
