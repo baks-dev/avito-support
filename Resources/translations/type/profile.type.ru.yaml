@@ -2,11 +2,11 @@ avito-support:
 
   message:
 
-    name: 'Авито сообщения'
+    name: 'Авито: Cообщение'
     desc: 'Сообщения Авито'
 
 
   review:
 
-    name: 'Авито отзывы'
+    name: 'Авито: Отзыв'
     desc: 'Отзывы Авито'
