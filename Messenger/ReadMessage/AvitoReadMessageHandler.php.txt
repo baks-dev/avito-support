@@ -37,7 +37,7 @@ use BaksDev\Support\UseCase\Admin\New\SupportDTO;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final class AvitoReadMessageHandler
+final readonly class AvitoReadMessageHandler
 {
     public function __construct(
         private AvitoReadChatRequest $readChatRequest,

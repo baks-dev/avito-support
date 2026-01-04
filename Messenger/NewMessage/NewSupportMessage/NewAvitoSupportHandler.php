@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -53,8 +53,8 @@ final readonly class NewAvitoSupportHandler
         #[Target('avitoSupportLogger')] private LoggerInterface $logger,
         private SupportHandler $supportHandler,
         private AvitoGetChatsInfoRequest $getChatsInfoRequest,
-        private AvitoGetListMessagesRequest $messagesRequest,
-        private CurrentSupportEventByTicketInterface $currentSupportEventByTicket,
+        private AvitoGetListMessagesRequest $AvitoGetListMessagesRequest,
+        private CurrentSupportEventByTicketInterface $currentSupportEventByTicketRepository,
         private FindExistExternalMessageByIdInterface $findExistMessage,
     ) {}
 
@@ -87,16 +87,16 @@ final readonly class NewAvitoSupportHandler
             $ticketId = $chat->getId();
 
             /** Если такой тикет уже существует в БД, то присваиваем в переменную  $supportEvent */
-            $supportEvent = $this->currentSupportEventByTicket
+            $supportEvent = $this->currentSupportEventByTicketRepository
                 ->forTicket($ticketId)
                 ->find();
 
             /** Получаем сообщения чата  */
-            $listMessages = $this->messagesRequest
+            $listMessages = $this->AvitoGetListMessagesRequest
                 ->profile($message->getProfile())
                 ->findAll($chat->getId());
 
-            if(!$listMessages->valid())
+            if(false === $listMessages || false === $listMessages->valid())
             {
                 continue;
             }
@@ -152,7 +152,7 @@ final readonly class NewAvitoSupportHandler
                     continue;
                 }
 
-                if(!in_array($listMessage->getType(), $messageTypes))
+                if(false === in_array($listMessage->getType(), $messageTypes))
                 {
                     $this->logger->critical(
                         sprintf(
@@ -173,7 +173,7 @@ final readonly class NewAvitoSupportHandler
                 }
 
                 /** Имя отправителя сообщения */
-                $name = !empty($user) ? $user->current()->getName() : 'Без имени';
+                $name = empty($user) ? 'Без имени' : $user->current()->getName();
 
                 /** Текст сообщения */
                 $text = $listMessage->getText() ?? 'Сообщение доступно в личном кабинете Avito';
