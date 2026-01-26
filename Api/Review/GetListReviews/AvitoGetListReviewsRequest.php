@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -35,8 +35,10 @@ final class AvitoGetListReviewsRequest extends AvitoApi
      * Получение списка активных отзывов на пользователя с пагинацией
      *
      * @see https://developers.avito.ru/api-catalog/ratings/documentation#operation/getReviewsV1
+     *
+     * @return Generator<AvitoReviewDTO>|false
      */
-    public function findAll(): Generator
+    public function findAll(): Generator|false
     {
         /** Собираем массив и присваиваем в переменную query параметры запроса */
         $query = [
@@ -44,14 +46,14 @@ final class AvitoGetListReviewsRequest extends AvitoApi
             'offset' => 0,
 
             /** Лимит количества отзывов */
-            'limit' => 50
+            'limit' => 50,
         ];
 
         $response = $this->TokenHttpClient()
             ->request(
                 'GET',
                 '/ratings/v1/reviews',
-                ['query' => $query]
+                ['query' => $query],
             );
 
         $content = $response->toArray(false);

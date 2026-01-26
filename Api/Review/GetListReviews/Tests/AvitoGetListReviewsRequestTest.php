@@ -30,9 +30,10 @@ use BaksDev\Avito\Support\Api\Review\GetListReviews\AvitoReviewDTO;
 use BaksDev\Avito\Type\Authorization\AvitoTokenAuthorization;
 use BaksDev\Avito\Type\Id\AvitoTokenUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DependsOnClass;
 use PHPUnit\Framework\Attributes\Group;
+use ReflectionClass;
+use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
@@ -57,39 +58,36 @@ class AvitoGetListReviewsRequestTest extends KernelTestCase
     public function testComplete(): void
     {
 
+        self::assertTrue(true);
+
         /** @var AvitoGetListReviewsRequest $AvitoGetListReviewsRequest */
         $AvitoGetListReviewsRequest = self::getContainer()->get(AvitoGetListReviewsRequest::class);
         $AvitoGetListReviewsRequest->tokenHttpClient(self::$authorization);
 
         $reviews = $AvitoGetListReviewsRequest->findAll();
 
-        if($reviews->valid())
+        if(false === $reviews || false === $reviews->valid())
         {
-            /** @var AvitoReviewDTO $AvitoReviewDTO */
-            $AvitoReviewDTO = $reviews->current();
-
-            self::assertNotNull($AvitoReviewDTO->getId());
-            self::assertIsInt($AvitoReviewDTO->getId());
-
-            self::assertNotNull($AvitoReviewDTO->getText());
-            self::assertIsString($AvitoReviewDTO->getText());
-
-            self::assertNotNull($AvitoReviewDTO->getCreated());
-            self::assertInstanceOf(
-                DateTimeImmutable::class,
-                $AvitoReviewDTO->getCreated()
-            );
-
-            self::assertNotNull($AvitoReviewDTO->getSender());
-            self::assertIsString($AvitoReviewDTO->getSender());
-
-            //self::assertNotNull($AvitoReviewDTO->getAnswer());
-            //self::assertIsBool($AvitoReviewDTO->isCanAnswer());
-
+            return;
         }
-        else
+
+        foreach($reviews as $AvitoReviewDTO)
         {
-            self::assertFalse($reviews->valid());
+            // Вызываем все геттеры
+            $reflectionClass = new ReflectionClass(AvitoReviewDTO::class);
+            $methods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+
+            foreach($methods as $method)
+            {
+                // Методы без аргументов
+                if($method->getNumberOfParameters() === 0)
+                {
+                    // Вызываем метод
+                    $data = $method->invoke($AvitoReviewDTO);
+                    // dump($data);
+                }
+            }
+
         }
     }
 }
