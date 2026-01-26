@@ -42,12 +42,13 @@ class AvitoReadChatRequestTest extends KernelTestCase
     public static function setUpBeforeClass(): void
     {
         self::$authorization = new AvitoTokenAuthorization(
-            profile: new UserProfileUid(),
-            client: $_SERVER['TEST_AVITO_CLIENT'],
-            secret: $_SERVER['TEST_AVITO_SECRET'],
-            user: $_SERVER['TEST_AVITO_USER'],
-            percent: $_SERVER['TEST_AVITO_PERCENT'] ?? '0',
-        );
+                    token: new AvitoTokenUid(AvitoTokenUid::TEST),
+                    profile: new UserProfileUid(UserProfileUid::TEST),
+                    client: $_SERVER['TEST_AVITO_CLIENT'],
+                    secret: $_SERVER['TEST_AVITO_SECRET'],
+                    user: $_SERVER['TEST_AVITO_USER'],
+                    percent: $_SERVER['TEST_AVITO_PERCENT'] ?? '0',
+                );
     }
 
     public function testComplete(): void

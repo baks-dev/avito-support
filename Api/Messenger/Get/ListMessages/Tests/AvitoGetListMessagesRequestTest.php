@@ -28,6 +28,7 @@ namespace BaksDev\Avito\Support\Api\Messenger\Get\ListMessages\Tests;
 use BaksDev\Avito\Support\Api\Messenger\Get\ListMessages\AvitoGetListMessagesRequest;
 use BaksDev\Avito\Support\Api\Messenger\Get\ListMessages\AvitoListMessagesDTO;
 use BaksDev\Avito\Type\Authorization\AvitoTokenAuthorization;
+use BaksDev\Avito\Type\Id\AvitoTokenUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DependsOnClass;
@@ -44,7 +45,8 @@ class AvitoGetListMessagesRequestTest extends KernelTestCase
     public static function setUpBeforeClass(): void
     {
         self::$authorization = new AvitoTokenAuthorization(
-            profile: new UserProfileUid(),
+            token: new AvitoTokenUid(AvitoTokenUid::TEST),
+            profile: new UserProfileUid(UserProfileUid::TEST),
             client: $_SERVER['TEST_AVITO_CLIENT'],
             secret: $_SERVER['TEST_AVITO_SECRET'],
             user: $_SERVER['TEST_AVITO_USER'],

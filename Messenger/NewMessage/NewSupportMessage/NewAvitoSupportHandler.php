@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Avito\Support\Messenger\NewMessage\NewSupportMessage;
 
-use BaksDev\Avito\Support\Api\Messenger\Get\ChatsInfo\AvitoChatsDTO;
+use BaksDev\Avito\Repository\AllTokensByProfile\AvitoTokensByProfileInterface;
 use BaksDev\Avito\Support\Api\Messenger\Get\ChatsInfo\AvitoGetChatsInfoRequest;
 use BaksDev\Avito\Support\Api\Messenger\Get\ListMessages\AvitoGetListMessagesRequest;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoMessageSupport;
@@ -43,6 +43,7 @@ use BaksDev\Support\UseCase\Admin\New\SupportDTO;
 use BaksDev\Support\UseCase\Admin\New\SupportHandler;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -50,12 +51,15 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final readonly class NewAvitoSupportHandler
 {
     public function __construct(
-        #[Target('avitoSupportLogger')] private LoggerInterface $logger,
+
         private SupportHandler $supportHandler,
         private AvitoGetChatsInfoRequest $getChatsInfoRequest,
         private AvitoGetListMessagesRequest $AvitoGetListMessagesRequest,
         private CurrentSupportEventByTicketInterface $currentSupportEventByTicketRepository,
+        private AvitoTokensByProfileInterface $AvitoTokensByProfileRepository,
         private FindExistExternalMessageByIdInterface $findExistMessage,
+        #[Target('avitoSupportLogger')] private LoggerInterface $logger,
+        #[Autowire(env: 'PROJECT_PROFILE')] private ?string $PROJECT_PROFILE = null,
     ) {}
 
     /**
@@ -63,156 +67,177 @@ final readonly class NewAvitoSupportHandler
      */
     public function __invoke(NewAvitoSupportMessage $message): void
     {
-        /** Получаем все непрочитанные чаты */
-        $chats = $this->getChatsInfoRequest
-            ->profile($message->getProfile())
-            ->findAll();
 
-        if(false === $chats || false === $chats->valid())
+        /** Если указан профиль проекта - пропускаем остальные профили */
+        if(false === empty($this->PROJECT_PROFILE) && false === $message->getProfile()->equals($this->PROJECT_PROFILE))
         {
             return;
         }
 
-        /** Все известные типы сообщений из реквеста */
-        $messageTypes = ['text', 'call', 'image', 'item', 'link', 'location', 'voice', 'system', 'file'];
+        /**  Получаем активные токены профилей пользователя */
 
-        /** @var AvitoChatsDTO $chat */
-        foreach($chats as $chat)
+        $tokens = $this->AvitoTokensByProfileRepository
+            ->onlyActive()
+            ->findAll();
+
+        if(false === $tokens || false === $tokens->valid())
         {
+            return;
+        }
 
-            /** Получаем массив с юзерами из чата */
-            $users = $chat->getUsers();
+        foreach($tokens as $AvitoTokenUid)
+        {
+            /** Получаем все непрочитанные чаты */
+            $chats = $this->getChatsInfoRequest
+                ->forTokenIdentifier($AvitoTokenUid)
+                ->findAll();
 
-            /** Получаем ID чата */
-            $ticketId = $chat->getId();
-
-            /** Если такой тикет уже существует в БД, то присваиваем в переменную  $supportEvent */
-            $supportEvent = $this->currentSupportEventByTicketRepository
-                ->forTicket($ticketId)
-                ->find();
-
-            /** Получаем сообщения чата  */
-            $listMessages = $this->AvitoGetListMessagesRequest
-                ->profile($message->getProfile())
-                ->findAll($chat->getId());
-
-            if(false === $listMessages || false === $listMessages->valid())
+            if(false === $chats || false === $chats->valid())
             {
                 continue;
             }
 
+            /** Все известные типы сообщений из реквеста */
+            $messageTypes = ['text', 'call', 'image', 'item', 'link', 'location', 'voice', 'system', 'file'];
 
-            $SupportDTO = ($supportEvent instanceof SupportEvent)
-                ? $supportEvent->getDto(SupportDTO::class)
-                : new SupportDTO();
 
-            /** Присваиваем значения по умолчанию */
-            if(false === $supportEvent)
+            foreach($chats as $AvitoChatsDTO)
             {
-                /** Присваиваем приоритет сообщения Высокий «Height», так как это сообщение от пользователя */
-                $SupportDTO->setPriority(new SupportPriority(SupportPriorityHeight::class));
 
-                /** SupportInvariableDTO */
-                $SupportInvariableDTO = new SupportInvariableDTO();
+                /** Получаем массив с юзерами из чата */
+                $users = $AvitoChatsDTO->getUsers();
 
-                $SupportInvariableDTO
-                    ->setProfile($message->getProfile()) // Профиль
-                    ->setType(new TypeProfileUid(TypeProfileAvitoMessageSupport::TYPE)) // TypeProfileAvitoMessageSupport::TYPE
-                    ->setTicket($ticketId)               //  Id тикета
-                    ->setTitle($chat->getTitle());       // Тема сообщения
+                /** Получаем ID чата */
+                $ticketId = $AvitoChatsDTO->getId();
 
-                /** Сохраняем данные SupportInvariableDTO в Support */
-                $SupportDTO->setInvariable($SupportInvariableDTO);
+                /** Если такой тикет уже существует в БД, то присваиваем в переменную  $supportEvent */
+                $supportEvent = $this->currentSupportEventByTicketRepository
+                    ->forTicket($ticketId)
+                    ->find();
 
-                /** Присваиваем токен для последующего поиска */
-                $SupportDTO->getToken()->setValue($message->getProfile());
+                /** Получаем сообщения чата  */
+                $listMessages = $this->AvitoGetListMessagesRequest
+                    ->profile($message->getProfile())
+                    ->findAll($AvitoChatsDTO->getId());
 
-            }
-
-            /** Присваиваем статус "Открытый", так как сообщение еще не прочитано   */
-            $SupportDTO->setStatus(new SupportStatus(SupportStatusOpen::class));
-
-            $isHandle = false;
-
-            foreach($listMessages as $listMessage)
-            {
-                /** Если такое сообщение уже есть в БД, то пропускаем */
-                $messageExist = $this->findExistMessage
-                    ->external($listMessage->getExternalId())
-                    ->exist();
-
-                if($messageExist)
+                if(false === $listMessages || false === $listMessages->valid())
                 {
                     continue;
                 }
 
-                /** Если тип сообщения "system", то пропускаем */
-                if($listMessage->getType() === 'system' || $listMessage->getType() === 'deleted')
+
+                $SupportDTO = ($supportEvent instanceof SupportEvent)
+                    ? $supportEvent->getDto(SupportDTO::class)
+                    : new SupportDTO();
+
+                /** Присваиваем значения по умолчанию */
+                if(false === $supportEvent)
                 {
-                    continue;
+                    /** Присваиваем приоритет сообщения Высокий «Height», так как это сообщение от пользователя */
+                    $SupportDTO->setPriority(new SupportPriority(SupportPriorityHeight::class));
+
+                    /** SupportInvariableDTO */
+                    $SupportInvariableDTO = new SupportInvariableDTO();
+
+                    $SupportInvariableDTO
+                        ->setProfile($message->getProfile()) // Профиль
+                        ->setType(new TypeProfileUid(TypeProfileAvitoMessageSupport::TYPE)) // TypeProfileAvitoMessageSupport::TYPE
+                        ->setTicket($ticketId)               //  Id тикета
+                        ->setTitle($AvitoChatsDTO->getTitle());       // Тема сообщения
+
+                    /** Сохраняем данные SupportInvariableDTO в Support */
+                    $SupportDTO->setInvariable($SupportInvariableDTO);
+
+                    /** Присваиваем токен для последующего ответа */
+                    $SupportDTO->getToken()->setValue($AvitoTokenUid);
+
                 }
 
-                if(false === in_array($listMessage->getType(), $messageTypes))
+                /** Присваиваем статус "Открытый", так как сообщение еще не прочитано   */
+                $SupportDTO->setStatus(new SupportStatus(SupportStatusOpen::class));
+
+                $isHandle = false;
+
+                foreach($listMessages as $listMessage)
                 {
-                    $this->logger->critical(
-                        sprintf(
-                            'avito-support: Неизвестный тип сообщения - %s',
-                            $listMessage->getType(),
-                        ),
-                        [self::class.':'.__LINE__, $listMessage],
-                    );
+                    /** Если такое сообщение уже есть в БД, то пропускаем */
+                    $messageExist = $this->findExistMessage
+                        ->external($listMessage->getExternalId())
+                        ->exist();
+
+                    if($messageExist)
+                    {
+                        continue;
+                    }
+
+                    /** Если тип сообщения "system", то пропускаем */
+                    if($listMessage->getType() === 'system' || $listMessage->getType() === 'deleted')
+                    {
+                        continue;
+                    }
+
+                    if(false === in_array($listMessage->getType(), $messageTypes))
+                    {
+                        $this->logger->critical(
+                            sprintf(
+                                'avito-support: Неизвестный тип сообщения - %s',
+                                $listMessage->getType(),
+                            ),
+                            [self::class.':'.__LINE__, $listMessage],
+                        );
+                    }
+
+                    /**
+                     * Если есть автор сообщения, выбираем юзера чата из коллекции,
+                     * сравнивая их ID с ID автора сообщения
+                     */
+                    if($listMessage->getAuthorId())
+                    {
+                        $user = $users->filter(fn($u) => $u->getId() === $listMessage->getAuthorId());
+                    }
+
+                    /** Имя отправителя сообщения */
+                    $name = empty($user) ? 'Без имени' : $user->current()->getName();
+
+                    /** Текст сообщения */
+                    $text = $listMessage->getText() ?? 'Сообщение доступно в личном кабинете Avito';
+
+
+                    $SupportMessageDTO = new SupportMessageDTO();
+
+                    $SupportMessageDTO
+                        ->setExternal($listMessage->getExternalId())    // Внешний (Авито) id сообщения
+                        ->setName($name)                                // Имя отправителя сообщения
+                        ->setMessage($text)                             // Текст сообщения
+                        ->setDate($listMessage->getCreated())           // Дата сообщения
+                    ;
+
+                    /** Если это сообщение изначально наше, то сохраняем с флагом true */
+                    $listMessage->getDirection() === 'out' ?
+                        $SupportMessageDTO->setOutMessage() :
+                        $SupportMessageDTO->setInMessage();
+
+                    /** Сохраняем данные SupportMessageDTO в Support */
+                    $isAddMessage = $SupportDTO->addMessage($SupportMessageDTO);
+
+                    if(false === $isHandle && true === $isAddMessage)
+                    {
+                        $isHandle = true;
+                    }
                 }
 
-                /**
-                 * Если есть автор сообщения, выбираем юзера чата из коллекции,
-                 * сравнивая их ID с ID автора сообщения
-                 */
-                if($listMessage->getAuthorId())
+                if($isHandle)
                 {
-                    $user = $users->filter(fn($u) => $u->getId() === $listMessage->getAuthorId());
-                }
+                    /** Сохраняем в БД */
+                    $handle = $this->supportHandler->handle($SupportDTO);
 
-                /** Имя отправителя сообщения */
-                $name = empty($user) ? 'Без имени' : $user->current()->getName();
-
-                /** Текст сообщения */
-                $text = $listMessage->getText() ?? 'Сообщение доступно в личном кабинете Avito';
-
-
-                $SupportMessageDTO = new SupportMessageDTO();
-
-                $SupportMessageDTO
-                    ->setExternal($listMessage->getExternalId())    // Внешний (Авито) id сообщения
-                    ->setName($name)                                // Имя отправителя сообщения
-                    ->setMessage($text)                             // Текст сообщения
-                    ->setDate($listMessage->getCreated())           // Дата сообщения
-                ;
-
-                /** Если это сообщение изначально наше, то сохраняем с флагом true */
-                $listMessage->getDirection() === 'out' ?
-                    $SupportMessageDTO->setOutMessage() :
-                    $SupportMessageDTO->setInMessage();
-
-                /** Сохраняем данные SupportMessageDTO в Support */
-                $isAddMessage = $SupportDTO->addMessage($SupportMessageDTO);
-
-                if(false === $isHandle && true === $isAddMessage)
-                {
-                    $isHandle = true;
-                }
-            }
-
-            if($isHandle)
-            {
-                /** Сохраняем в БД */
-                $handle = $this->supportHandler->handle($SupportDTO);
-
-                if(false === ($handle instanceof Support))
-                {
-                    $this->logger->critical(
-                        sprintf('avito-support: Ошибка %s при обновлении чата', $handle),
-                        [self::class.':'.__LINE__],
-                    );
+                    if(false === ($handle instanceof Support))
+                    {
+                        $this->logger->critical(
+                            sprintf('avito-support: Ошибка %s при обновлении чата', $handle),
+                            [self::class.':'.__LINE__],
+                        );
+                    }
                 }
             }
         }
