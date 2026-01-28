@@ -111,7 +111,7 @@ final readonly class NewAvitoSupportHandler
                 /** Получаем ID чата */
                 $ticketId = $AvitoChatsDTO->getId();
 
-                /** Если такой тикет уже существует в БД, то присваиваем в переменную  $supportEvent */
+                /** Если такой тикет уже существует в БД, то присваиваем в переменную $supportEvent */
                 $supportEvent = $this->currentSupportEventByTicketRepository
                     ->forTicket($ticketId)
                     ->find();
