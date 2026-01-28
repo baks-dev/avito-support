@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ namespace BaksDev\Avito\Support\Messenger\ReplyMessage\AvitoSupportReplyReview;
 
 use BaksDev\Avito\Support\Api\Review\ReplyToReview\AvitoReplyToReviewRequest;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoReviewSupport;
+use BaksDev\Avito\Type\Id\AvitoTokenUid;
 use BaksDev\Support\Entity\Event\SupportEvent;
 use BaksDev\Support\Messenger\SupportMessage;
 use BaksDev\Support\Repository\SupportCurrentEvent\CurrentSupportEventInterface;
@@ -98,9 +99,11 @@ final readonly class ReplyAvitoReviewHandler
             return;
         }
 
+        $AvitoTokenUid = new AvitoTokenUid($SupportDTO->getToken()->getValue());
+
         /** Отправляем ответ на отзыв */
         $this->replyToReviewRequest
-            ->profile($SupportInvariableDTO->getProfile())
+            ->forTokenIdentifier($AvitoTokenUid)
             ->review($ticket)
             ->send($lastSupportMessage->getMessage());
     }

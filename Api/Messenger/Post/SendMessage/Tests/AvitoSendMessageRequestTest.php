@@ -63,7 +63,6 @@ class AvitoSendMessageRequestTest extends KernelTestCase
         $AvitoSendMessageRequest->tokenHttpClient(self::$authorization);
 
         $reviews = $AvitoSendMessageRequest
-            ->profile(self::$authorization->getProfile())
             ->message('Беру!!!')
             ->send('id');
 

@@ -118,7 +118,7 @@ final readonly class NewAvitoSupportHandler
 
                 /** Получаем сообщения чата  */
                 $listMessages = $this->AvitoGetListMessagesRequest
-                    ->profile($message->getProfile())
+                    ->forTokenIdentifier($AvitoTokenUid)
                     ->findAll($AvitoChatsDTO->getId());
 
                 if(false === $listMessages || false === $listMessages->valid())

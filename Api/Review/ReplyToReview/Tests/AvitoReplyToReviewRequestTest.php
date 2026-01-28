@@ -62,7 +62,6 @@ class AvitoReplyToReviewRequestTest extends KernelTestCase
         $AvitoReplyToReviewRequest->tokenHttpClient(self::$authorization);
 
         $reviews = $AvitoReplyToReviewRequest
-            ->profile(self::$authorization->getProfile())
             ->review('23442221')
             ->send('New Test Message');
 

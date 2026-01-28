@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ namespace BaksDev\Avito\Support\Messenger\ReplyMessage\AvitoSupportReplyMessage;
 
 use BaksDev\Avito\Support\Api\Messenger\Post\SendMessage\AvitoSendMessageRequest;
 use BaksDev\Avito\Support\Types\ProfileType\TypeProfileAvitoMessageSupport;
+use BaksDev\Avito\Type\Id\AvitoTokenUid;
 use BaksDev\Core\Messenger\MessageDelay;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Support\Entity\Event\SupportEvent;
@@ -101,11 +102,13 @@ final readonly class ReplyAvitoMessageHandler
             return;
         }
 
+
+        $AvitoTokenUid = new AvitoTokenUid($SupportDTO->getToken()->getValue());
         $ticket = $SupportInvariableDTO->getTicket();
 
         /** Отправка сообщения */
         $send = $this->messageRequest
-            ->profile($SupportInvariableDTO->getProfile())
+            ->forTokenIdentifier($AvitoTokenUid)
             ->message($lastMessage->getMessage())
             ->send($ticket);
 
