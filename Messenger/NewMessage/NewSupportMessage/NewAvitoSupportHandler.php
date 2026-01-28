@@ -77,6 +77,7 @@ final readonly class NewAvitoSupportHandler
         /**  Получаем активные токены профилей пользователя */
 
         $tokens = $this->AvitoTokensByProfileRepository
+            ->forProfile($message->getProfile())
             ->onlyActive()
             ->findAll();
 
