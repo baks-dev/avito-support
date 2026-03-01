@@ -28,9 +28,11 @@ namespace BaksDev\Avito\Support\Schedule\AvitoGetNewReview;
 use BaksDev\Avito\Repository\AllUserProfilesByActiveToken\AllProfilesByActiveTokenInterface;
 use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportReview\NewAvitoSupportReviewMessage;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AsMessageHandler]
+#[Autoconfigure(public: true)]
+#[AsMessageHandler(priority: 0)]
 final readonly class AvitoGetNewReviewHandler
 {
     public function __construct(

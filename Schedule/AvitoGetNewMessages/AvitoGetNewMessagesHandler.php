@@ -28,9 +28,11 @@ namespace BaksDev\Avito\Support\Schedule\AvitoGetNewMessages;
 use BaksDev\Avito\Repository\AllUserProfilesByActiveToken\AllProfilesByActiveTokenInterface;
 use BaksDev\Avito\Support\Messenger\NewMessage\NewSupportMessage\NewAvitoSupportMessage;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AsMessageHandler]
+#[Autoconfigure(public: true)]
+#[AsMessageHandler(priority: 0)]
 final readonly class AvitoGetNewMessagesHandler
 {
     public function __construct(

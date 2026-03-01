@@ -27,8 +27,9 @@ namespace BaksDev\Avito\Support\Api\Review\GetListReviews;
 
 use BaksDev\Avito\Api\AvitoApi;
 use Generator;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
-
+#[Autoconfigure(public: true)]
 final class AvitoGetListReviewsRequest extends AvitoApi
 {
     /**
