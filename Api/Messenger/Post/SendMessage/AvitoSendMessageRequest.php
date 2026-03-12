@@ -29,7 +29,7 @@ use BaksDev\Avito\Api\AvitoApi;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
-#[Autoconfigure(public: true)]
+// #[Autoconfigure(public: true)]
 final class AvitoSendMessageRequest extends AvitoApi
 {
     private string|false $message = false;

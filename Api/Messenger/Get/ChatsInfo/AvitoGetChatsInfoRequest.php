@@ -30,7 +30,7 @@ use Generator;
 use JsonException;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
-#[Autoconfigure(public: true)]
+// #[Autoconfigure(public: true)]
 final class AvitoGetChatsInfoRequest extends AvitoApi
 {
 
