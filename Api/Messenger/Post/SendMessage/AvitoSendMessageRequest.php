@@ -70,7 +70,7 @@ final class AvitoSendMessageRequest extends AvitoApi
         /** Собираем в массив и присваиваем в переменную тело запроса */
         $body = [
             'message' => ['text' => $this->message],
-            'type' => $this->type
+            'type' => $this->type,
         ];
 
         $response = $this->TokenHttpClient()
@@ -78,8 +78,8 @@ final class AvitoSendMessageRequest extends AvitoApi
                 'POST',
                 sprintf('/messenger/v1/accounts/%s/chats/%s/messages', $this->getUser(), $avitoChat),
                 [
-                    "json" => $body
-                ]
+                    "json" => $body,
+                ],
             );
 
         $content = $response->toArray(false);
@@ -87,8 +87,15 @@ final class AvitoSendMessageRequest extends AvitoApi
         if($response->getStatusCode() !== 200)
         {
             $this->logger->critical(
-                'avito-support: Ошибка отправки сообщения в чат ',
-                [self::class.':'.__LINE__, $body, $content],
+                sprintf('avito-support: Ошибка отправки сообщения в чат токена %s', $this->getTokenIdentifier()),
+                [
+                    self::class.':'.__LINE__,
+                    $body,
+                    $content,
+                    $this->getUser(),
+                    $avitoChat,
+                    $this->getTokenIdentifier(),
+                ],
             );
 
             return false;
