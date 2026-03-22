@@ -61,9 +61,9 @@ final class AvitoGetListMessagesRequest extends AvitoApi
                 sprintf(
                     '/messenger/v3/accounts/%s/chats/%s/messages/',
                     $this->getUser(),
-                    $avitoChat
+                    $avitoChat,
                 ),
-                ['query' => $query]
+                ['query' => $query],
             );
 
 
@@ -72,7 +72,7 @@ final class AvitoGetListMessagesRequest extends AvitoApi
         {
             $this->logger->critical(
                 sprintf('avito-support: Ошибка получения сообщений %s', $avitoChat),
-                [self::class.':'.__LINE__]
+                [self::class.':'.__LINE__],
             );
 
             return false;

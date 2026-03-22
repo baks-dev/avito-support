@@ -61,7 +61,7 @@ final readonly class AvitoChatsDTO
                 new AvitoChatsUsersDTO(
                     $user['id'],
                     $user['name'],
-                )
+                ),
             );
         }
     }

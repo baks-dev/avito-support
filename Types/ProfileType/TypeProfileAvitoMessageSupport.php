@@ -33,17 +33,6 @@ final class TypeProfileAvitoMessageSupport implements TypeProfileInterface
 {
     public const string TYPE = '6f3a70af-b003-7db2-b98b-00e9cad903fe';
 
-    public function __toString(): string
-    {
-        return self::TYPE;
-    }
-
-    /** Возвращает значение (value) */
-    public function getValue(): string
-    {
-        return self::TYPE;
-    }
-
     /** Сортировка */
     public static function priority(): int
     {
@@ -53,5 +42,16 @@ final class TypeProfileAvitoMessageSupport implements TypeProfileInterface
     public static function equals(mixed $uid): bool
     {
         return self::TYPE === (string) $uid;
+    }
+
+    public function __toString(): string
+    {
+        return self::TYPE;
+    }
+
+    /** Возвращает значение (value) */
+    public function getValue(): string
+    {
+        return self::TYPE;
     }
 }

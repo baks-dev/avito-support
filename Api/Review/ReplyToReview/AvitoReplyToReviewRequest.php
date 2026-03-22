@@ -34,6 +34,7 @@ final class AvitoReplyToReviewRequest extends AvitoApi
 {
     /**  ID отзыва */
     private int|false $review = false;
+    private string $message;
 
     public function review(string|int $review): self
     {
@@ -41,8 +42,6 @@ final class AvitoReplyToReviewRequest extends AvitoApi
 
         return $this;
     }
-
-    private string $message;
 
     public function setMessage(string $message): self
     {
@@ -74,14 +73,14 @@ final class AvitoReplyToReviewRequest extends AvitoApi
         /** Собираем в массив и присваиваем в переменную тело запроса */
         $body = [
             'message' => $message,
-            'reviewId' => $this->review
+            'reviewId' => $this->review,
         ];
 
         $response = $this->TokenHttpClient()
             ->request(
                 'POST',
                 '/ratings/v1/answers',
-                ["json" => $body]
+                ["json" => $body],
             );
 
         $content = $response->toArray(false);
@@ -90,7 +89,7 @@ final class AvitoReplyToReviewRequest extends AvitoApi
         {
             $this->logger->critical(
                 sprintf('Ошибка отправки ответа на отзыв  %s', $this->review),
-                [self::class.':'.__LINE__, $content]
+                [self::class.':'.__LINE__, $content],
             );
 
             return false;

@@ -87,7 +87,7 @@ class AvitoGetChatsInfoRequestTest extends KernelTestCase
             self::assertNotNull($AvitoChatsDTO->getCreated());
             self::assertInstanceOf(
                 DateTimeImmutable::class,
-                $AvitoChatsDTO->getCreated()
+                $AvitoChatsDTO->getCreated(),
             );
 
             if($AvitoChatsDTO->getUsers())

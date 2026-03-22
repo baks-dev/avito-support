@@ -82,7 +82,7 @@ final class AvitoReviewDTO
                         '<a href="%s" target="_blank"><img data-src="%s" class="lazy" title="%s" style="max-height: 50px;" /></a>',
                         $size['url'],
                         $size['url'],
-                        $image['number']
+                        $image['number'],
                     );
                 }
             }
@@ -94,7 +94,7 @@ final class AvitoReviewDTO
 
     function getArea($size)
     {
-        list($width, $height) = explode('x', $size);
+        [$width, $height] = explode('x', $size);
         return $width * $height; // Площадь
     }
 

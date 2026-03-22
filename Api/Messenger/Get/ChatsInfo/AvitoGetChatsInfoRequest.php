@@ -68,7 +68,7 @@ final class AvitoGetChatsInfoRequest extends AvitoApi
             ->request(
                 'GET',
                 sprintf('/messenger/v2/accounts/%s/chats', $this->getUser()),
-                ['query' => $query]
+                ['query' => $query],
             );
 
         try
@@ -87,7 +87,7 @@ final class AvitoGetChatsInfoRequest extends AvitoApi
                 sprintf('avito-support: Ошибка получения чата %s', $this->getUser()),
                 [
                     self::class.':'.__LINE__,
-                    $content
+                    $content,
                 ]);
 
             return false;
