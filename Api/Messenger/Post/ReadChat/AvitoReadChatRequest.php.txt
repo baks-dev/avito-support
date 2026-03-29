@@ -27,7 +27,7 @@ namespace BaksDev\Avito\Support\Api\Messenger\Post\ReadChat;
 
 use BaksDev\Avito\Api\AvitoApi;
 
-
+#[Autoconfigure(shared: false)]
 final class AvitoReadChatRequest extends AvitoApi
 {
 

@@ -29,7 +29,7 @@ use BaksDev\Avito\Api\AvitoApi;
 use Generator;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
-// #[Autoconfigure(public: true)]
+#[Autoconfigure(shared: false)]
 final class AvitoGetListMessagesRequest extends AvitoApi
 {
 
@@ -52,7 +52,7 @@ final class AvitoGetListMessagesRequest extends AvitoApi
             //   'offset' => 1,
 
             /** Лимит количества сообщений */
-            //  'limit' => 50
+            'limit' => 100,
         ];
 
         $response = $this->TokenHttpClient()
@@ -72,7 +72,14 @@ final class AvitoGetListMessagesRequest extends AvitoApi
         {
             $this->logger->critical(
                 sprintf('avito-support: Ошибка получения сообщений %s', $avitoChat),
-                [self::class.':'.__LINE__],
+                [
+                    self::class.':'.__LINE__,
+                    sprintf(
+                        '/messenger/v3/accounts/%s/chats/%s/messages/',
+                        $this->getUser(),
+                        $avitoChat,
+                    ),
+                ],
             );
 
             return false;
